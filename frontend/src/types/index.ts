@@ -60,9 +60,12 @@ export interface TripBookingItem {
   rider_id: string;
   rider_name?: string;
   rider_role?: UniversityRole;
+  rider_department?: string;
+  rider_university_id?: string;
   pickup_point_id: string;
   pickup_label: string;
   pickup_address?: string;
+  pickup_sequence?: number;
   pickup_lat: number;
   pickup_lng: number;
   seats_booked: number;

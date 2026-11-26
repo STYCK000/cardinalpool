@@ -17,17 +17,12 @@ const createBookingSchema = z.object({
 /**
  * POST /api/bookings
  * Books a seat on a scheduled trip to Mapúa University Intramuros.
- * STRICTLY ENFORCES:
- *   1. Mandatory 24-hour advance booking rule (rejects any booking < 24h before departure)
- *   2. Seat availability & valid pick-up point belonging to the trip
- *   3. Atomic token escrow debit from rider's wallet (released to driver on trip completion)
  */
 router.post('/', requireAuth, async (req, res, next) => {
   try {
     const body = createBookingSchema.parse(req.body);
 
     const outcome = await withTransaction(async (client) => {
-      // Lock the trip row to prevent race conditions on available_seats
       const tripRes = await client.query(
         `SELECT t.*, u.full_name AS driver_name
          FROM trips t
@@ -51,7 +46,6 @@ router.post('/', requireAuth, async (req, res, next) => {
         throw new AppError(400, 'TRIP_NOT_BOOKABLE', 'This trip is no longer accepting bookings.');
       }
 
-      // === MANDATORY 24-HOUR ADVANCE BOOKING VALIDATION ===
       const windowCheck = validateAdvanceBookingWindow(trip.departure_time);
       if (!windowCheck.allowed) {
         throw new AppError(400, 'BOOKING_WINDOW_CLOSED', windowCheck.reason || 'Must book at least 24 hours ahead.', {
@@ -68,7 +62,6 @@ router.post('/', requireAuth, async (req, res, next) => {
         );
       }
 
-      // Verify selected pick-up point belongs to this trip
       const pickupRes = await client.query(
         'SELECT id, label FROM pickup_points WHERE id = $1 AND trip_id = $2',
         [body.pickupPointId, trip.id]
@@ -81,7 +74,6 @@ router.post('/', requireAuth, async (req, res, next) => {
       const pickupPoint = pickupRes.rows[0];
       const totalTokenCost = trip.token_cost * body.seatsBooked;
 
-      // Create booking record (DB trigger also double-checks the 24-hour rule)
       const bookingRes = await client.query(
         `INSERT INTO bookings (
            trip_id, rider_id, pickup_point_id, seats_booked, tokens_escrowed, status, booked_at
@@ -91,7 +83,6 @@ router.post('/', requireAuth, async (req, res, next) => {
       );
       const booking = bookingRes.rows[0];
 
-      // Atomically debit rider's Cardinal Tokens into escrow
       const walletUpdate = await applyTokenDelta(client, {
         userId: req.user!.id,
         counterpartyId: trip.driver_id,
@@ -102,7 +93,6 @@ router.post('/', requireAuth, async (req, res, next) => {
         description: `Escrowed ${totalTokenCost} tokens for ${body.seatsBooked} seat(s) from ${pickupPoint.label} to Mapúa Intramuros (Driver: ${trip.driver_name})`,
       });
 
-      // Decrement available seats
       await client.query(
         'UPDATE trips SET available_seats = available_seats - $1 WHERE id = $2',
         [body.seatsBooked, trip.id]
@@ -127,7 +117,6 @@ router.post('/', requireAuth, async (req, res, next) => {
 
 /**
  * GET /api/bookings/me
- * Lists all bookings made by the authenticated rider with trip & pick-up details.
  */
 router.get('/me', requireAuth, async (req, res, next) => {
   try {
@@ -153,8 +142,35 @@ router.get('/me', requireAuth, async (req, res, next) => {
 });
 
 /**
+ * POST /api/bookings/:id/board
+ * Driver marks a booked rider as picked up / boarded at their stop.
+ */
+router.post('/:id/board', requireAuth, async (req, res, next) => {
+  try {
+    const result = await query(
+      `UPDATE bookings b
+       SET status = 'BOARDED'
+       FROM trips t
+       WHERE b.id = $1
+         AND b.trip_id = t.id
+         AND t.driver_id = $2
+         AND b.status = 'CONFIRMED'
+       RETURNING b.*`,
+      [req.params.id, req.user!.id]
+    );
+
+    if (result.rowCount === 0) {
+      throw new AppError(400, 'CANNOT_BOARD', 'Confirmed booking not found or you are not the driver.');
+    }
+
+    res.json({ message: 'Passenger marked as picked up!', booking: result.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * POST /api/bookings/:id/cancel
- * Rider cancels a confirmed booking (allowed >= 24h before departure) and receives a full token refund.
  */
 router.post('/:id/cancel', requireAuth, async (req, res, next) => {
   try {

@@ -34,15 +34,13 @@ const createTripSchema = z.object({
 
 /**
  * POST /api/trips
- * Driver creates an upcoming trip terminating at the fixed destination:
- * Mapúa University - Intramuros (658 Muralla St, Intramuros, Manila).
+ * Driver creates an upcoming trip terminating at Mapúa University Intramuros.
  */
 router.post('/', requireAuth, requireDriverCapability, async (req, res, next) => {
   try {
     const body = createTripSchema.parse(req.body);
     const departureDate = new Date(body.departureTime);
 
-    // Ensure drivers schedule trips far enough ahead so riders can satisfy the 24-hour booking rule
     const windowCheck = validateAdvanceBookingWindow(departureDate);
     if (!windowCheck.allowed) {
       throw new AppError(
@@ -52,7 +50,6 @@ router.post('/', requireAuth, requireDriverCapability, async (req, res, next) =>
       );
     }
 
-    // Compute driving route: origin -> ordered pick-up points -> Mapúa University Intramuros
     const waypoints = [
       { lat: body.originLat, lng: body.originLng },
       ...body.pickupPoints.map((p) => ({ lat: p.lat, lng: p.lng })),
@@ -113,7 +110,7 @@ router.post('/', requireAuth, requireDriverCapability, async (req, res, next) =>
         insertedPickups.push(stopRes.rows[0]);
       }
 
-      return { ...trip, pickup_points: insertedPickups };
+      return { ...trip, pickup_points: insertedPickups, bookings: [] };
     });
 
     res.status(201).json({ trip: created });
@@ -124,8 +121,8 @@ router.post('/', requireAuth, requireDriverCapability, async (req, res, next) =>
 
 /**
  * GET /api/trips
- * Lists upcoming and active trips to Mapúa University Intramuros with driver info,
- * pick-up points, and 24-hour booking eligibility metadata.
+ * Lists upcoming and active trips to Mapúa University Intramuros.
+ * Includes full passenger manifest (who is riding + their pick-up point) for the trip's driver.
  */
 router.get('/', requireAuth, async (req, res, next) => {
   try {
@@ -133,7 +130,7 @@ router.get('/', requireAuth, async (req, res, next) => {
     const mineOnly = req.query.mine === 'true';
 
     const conditions: string[] = [];
-    const params: unknown[] = [];
+    const params: unknown[] = [req.user!.id];
 
     if (statusFilter) {
       params.push(statusFilter);
@@ -143,8 +140,7 @@ router.get('/', requireAuth, async (req, res, next) => {
     }
 
     if (mineOnly) {
-      params.push(req.user!.id);
-      conditions.push(`t.driver_id = $${params.length}`);
+      conditions.push(`t.driver_id = $1`);
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -159,7 +155,38 @@ router.get('/', requireAuth, async (req, res, next) => {
                 (SELECT json_agg(p ORDER BY p.sequence_order ASC)
                  FROM pickup_points p WHERE p.trip_id = t.id),
                 '[]'::json
-              ) AS pickup_points
+              ) AS pickup_points,
+              CASE
+                WHEN t.driver_id = $1 THEN COALESCE(
+                  (SELECT json_agg(
+                     json_build_object(
+                       'id', b.id,
+                       'trip_id', b.trip_id,
+                       'rider_id', b.rider_id,
+                       'rider_name', ru.full_name,
+                       'rider_role', ru.university_role,
+                       'rider_department', ru.department,
+                       'rider_university_id', ru.university_id_number,
+                       'pickup_point_id', b.pickup_point_id,
+                       'pickup_label', pp.label,
+                       'pickup_address', pp.address,
+                       'pickup_sequence', pp.sequence_order,
+                       'pickup_lat', pp.lat,
+                       'pickup_lng', pp.lng,
+                       'seats_booked', b.seats_booked,
+                       'tokens_escrowed', b.tokens_escrowed,
+                       'status', b.status,
+                       'booked_at', b.booked_at
+                     ) ORDER BY pp.sequence_order ASC, b.booked_at ASC
+                   )
+                   FROM bookings b
+                   JOIN users ru ON ru.id = b.rider_id
+                   JOIN pickup_points pp ON pp.id = b.pickup_point_id
+                   WHERE b.trip_id = t.id AND b.status IN ('CONFIRMED', 'BOARDED', 'COMPLETED')),
+                  '[]'::json
+                )
+                ELSE '[]'::json
+              END AS bookings
        FROM trips t
        JOIN users u ON u.id = t.driver_id
        ${whereClause}
@@ -186,8 +213,7 @@ router.get('/', requireAuth, async (req, res, next) => {
 
 /**
  * GET /api/trips/:id
- * Returns full trip details, pick-up stops, booked riders, latest live GPS positions,
- * and dynamic ETA to the rider's chosen pick-up point and Mapúa Intramuros.
+ * Returns full trip details, pick-up stops, passenger manifest, live GPS pins, and dynamic ETA.
  */
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {
@@ -213,12 +239,21 @@ router.get('/:id', requireAuth, async (req, res, next) => {
     const [pickupsRes, bookingsRes, locationsRes] = await Promise.all([
       query('SELECT * FROM pickup_points WHERE trip_id = $1 ORDER BY sequence_order ASC', [tripId]),
       query(
-        `SELECT b.*, u.full_name AS rider_name, u.university_role AS rider_role,
-                p.label AS pickup_label, p.lat AS pickup_lat, p.lng AS pickup_lng
+        `SELECT b.*,
+                u.full_name AS rider_name,
+                u.university_role AS rider_role,
+                u.department AS rider_department,
+                u.university_id_number AS rider_university_id,
+                p.label AS pickup_label,
+                p.address AS pickup_address,
+                p.sequence_order AS pickup_sequence,
+                p.lat AS pickup_lat,
+                p.lng AS pickup_lng
          FROM bookings b
          JOIN users u ON u.id = b.rider_id
          JOIN pickup_points p ON p.id = b.pickup_point_id
-         WHERE b.trip_id = $1 AND b.status IN ('CONFIRMED', 'BOARDED', 'COMPLETED')`,
+         WHERE b.trip_id = $1 AND b.status IN ('CONFIRMED', 'BOARDED', 'COMPLETED')
+         ORDER BY p.sequence_order ASC, b.booked_at ASC`,
         [tripId]
       ),
       query(
@@ -230,7 +265,6 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       ),
     ]);
 
-    // Compute route on-demand if not yet cached
     let routeGeojson = trip.route_geojson;
     if (!routeGeojson) {
       const waypoints = [
@@ -242,7 +276,6 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       routeGeojson = computed.geojson;
     }
 
-    // Calculate dynamic ETA from driver's latest GPS (or origin if trip hasn't started yet)
     const driverLoc = locationsRes.rows.find((l) => l.role === 'DRIVER');
     const driverPos = driverLoc
       ? { lat: driverLoc.lat, lng: driverLoc.lng }
@@ -278,7 +311,6 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 
 /**
  * POST /api/trips/:id/start
- * Driver marks a scheduled trip as IN_PROGRESS to begin live GPS tracking.
  */
 router.post('/:id/start', requireAuth, async (req, res, next) => {
   try {
@@ -302,8 +334,6 @@ router.post('/:id/start', requireAuth, async (req, res, next) => {
 
 /**
  * POST /api/trips/:id/complete
- * Driver completes the trip at Mapúa University Intramuros.
- * Atomically releases all escrowed rider tokens to the driver's wallet and logs TRIP_PAYOUT entries.
  */
 router.post('/:id/complete', requireAuth, async (req, res, next) => {
   try {
@@ -325,7 +355,6 @@ router.post('/:id/complete', requireAuth, async (req, res, next) => {
         throw new AppError(400, 'TRIP_CANCELLED', 'Cannot complete a cancelled trip.');
       }
 
-      // Lock all active bookings for this trip
       const bookingsRes = await client.query(
         `SELECT b.id, b.rider_id, b.tokens_escrowed, u.full_name AS rider_name
          FROM bookings b
@@ -379,7 +408,6 @@ router.post('/:id/complete', requireAuth, async (req, res, next) => {
 
 /**
  * POST /api/trips/:id/cancel
- * Driver cancels a scheduled trip and automatically refunds all escrowed rider tokens.
  */
 router.post('/:id/cancel', requireAuth, async (req, res, next) => {
   try {

@@ -89,6 +89,19 @@ export default function App() {
     }
   };
 
+  const handleMarkBoarded = async (bookingId: string) => {
+    setBanner(null);
+    try {
+      const res = await apiRequest<{ message: string }>(`/bookings/${bookingId}/board`, {
+        method: 'POST',
+      });
+      setBanner({ type: 'success', text: res.message });
+      await loadTripsAndBookings();
+    } catch (err) {
+      setBanner({ type: 'error', text: (err as Error).message });
+    }
+  };
+
   const handleCancelBooking = async (bookingId: string) => {
     setBanner(null);
     try {
@@ -171,6 +184,7 @@ export default function App() {
                     }}
                     onStartTrip={handleStartTrip}
                     onCompleteTrip={handleCompleteTrip}
+                    onMarkBoarded={handleMarkBoarded}
                   />
                 ))}
               </div>
@@ -184,7 +198,12 @@ export default function App() {
             {user.active_mode === 'DRIVER' ? (
               <>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-slate-900">My Posted Driver Trips</h2>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">My Posted Driver Trips</h2>
+                    <p className="text-xs text-slate-500">
+                      Review who is riding with you, their chosen pick-up stop, and mark riders as picked up.
+                    </p>
+                  </div>
                   <button
                     onClick={() => setShowCreateModal(true)}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cardinal-700 text-white text-xs font-semibold"
@@ -192,22 +211,29 @@ export default function App() {
                     <PlusCircle className="w-4 h-4" /> Post New Trip
                   </button>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  {myDrivenTrips.map((trip) => (
-                    <TripCard
-                      key={trip.id}
-                      trip={trip}
-                      isOwnTrip
-                      onBook={handleBookSeat}
-                      onOpenMap={(id) => {
-                        setSelectedMapTripId(id);
-                        setActiveTab('map');
-                      }}
-                      onStartTrip={handleStartTrip}
-                      onCompleteTrip={handleCompleteTrip}
-                    />
-                  ))}
-                </div>
+                {myDrivenTrips.length === 0 ? (
+                  <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-sm text-slate-500">
+                    You haven't posted any trips yet. Click <strong>Post New Trip</strong> to schedule a carpool to Mapúa Intramuros.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    {myDrivenTrips.map((trip) => (
+                      <TripCard
+                        key={trip.id}
+                        trip={trip}
+                        isOwnTrip
+                        onBook={handleBookSeat}
+                        onOpenMap={(id) => {
+                          setSelectedMapTripId(id);
+                          setActiveTab('map');
+                        }}
+                        onStartTrip={handleStartTrip}
+                        onCompleteTrip={handleCompleteTrip}
+                        onMarkBoarded={handleMarkBoarded}
+                      />
+                    ))}
+                  </div>
+                )}
               </>
             ) : (
               <>

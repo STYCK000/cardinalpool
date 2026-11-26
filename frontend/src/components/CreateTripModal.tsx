@@ -543,7 +543,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
               <MapContainer center={[14.615, 121.0]} zoom={12} scrollWheelZoom>
                 {/* Clean Google Maps / Grab-like CartoDB Voyager basemap */}
                 <TileLayer
-                  attribution="&copy; OpenStreetMap &copy; CARTO"
+                  attribution="&copy; OpenStreetMap contributors"
                   url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 <MapClickPicker onPick={handleMapClick} />
