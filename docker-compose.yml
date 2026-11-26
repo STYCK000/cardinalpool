@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cardiride_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cardiride
+      POSTGRES_PASSWORD: cardiride_dev_password
+      POSTGRES_DB: cardiride
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cardiride -d cardiride"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: cardiride_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP server for local email verification testing
+      - "8025:8025" # Web UI at http://localhost:8025
+
+volumes:
+  pgdata:
