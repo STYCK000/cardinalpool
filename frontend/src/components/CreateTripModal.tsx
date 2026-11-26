@@ -544,7 +544,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
                 {/* Clean Google Maps / Grab-like CartoDB Voyager basemap */}
                 <TileLayer
                   attribution="&copy; OpenStreetMap &copy; CARTO"
-                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                  url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 <MapClickPicker onPick={handleMapClick} />
                 <FitRouteBounds coords={roadCoords} />
