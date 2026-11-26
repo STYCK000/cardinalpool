@@ -272,7 +272,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
         <MapContainer center={MAPUA_INTRAMUROS_COORDS} zoom={13} scrollWheelZoom>
           <TileLayer
             attribution="&copy; OpenStreetMap &copy; CARTO"
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <FitBoundsOnRoute coords={routeLatLngs} />
 
