@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import {
   CheckCircle2,
@@ -17,31 +17,12 @@ import { apiRequest } from '../services/api';
 import { getTrackingSocket } from '../services/socket';
 import { fetchRoadRoute } from '../services/geo';
 import { useAuth } from '../context/AuthContext';
+import { BaseTiles, campusIcon, driverIcon, riderIcon, routeStyles, startIcon, stopIcon } from './MapKit';
+import { Pill, Skeleton, Spinner, StatusPill, btn, cardCls } from './ui';
 
 interface LiveTripMapProps {
   tripId: string;
 }
-
-const makeBadgeIcon = (bg: string, text: string, label: string, width = 120) =>
-  L.divIcon({
-    className: 'cardiride-map-badge',
-    html: `<div style="background:${bg};color:${text};font-weight:700;font-size:11px;padding:5px 10px;border-radius:999px;border:2px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.35);white-space:nowrap;text-align:center;">${label}</div>`,
-    iconSize: [width, 28],
-    iconAnchor: [Math.round(width / 2), 14],
-  });
-
-const stopCircleIcon = (num: number) =>
-  L.divIcon({
-    className: 'cardiride-stop-circle',
-    html: `<div style="background:#F59E0B;color:#111827;font-weight:800;font-size:12px;width:28px;height:28px;border-radius:999px;border:2.5px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">${num}</div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-  });
-
-const startIcon = makeBadgeIcon('#059669', '#FFFFFF', 'Start', 64);
-const campusIcon = makeBadgeIcon('#991B1B', '#FBBF24', 'Mapúa Intramuros', 132);
-const driverIcon = makeBadgeIcon('#0F172A', '#38BDF8', 'Driver Live', 92);
-const riderIcon = makeBadgeIcon('#047857', '#FFFFFF', 'Rider Live', 86);
 
 function FitBoundsOnRoute({ coords }: { coords: [number, number][] }) {
   const map = useMap();
@@ -212,126 +193,151 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
     }, 1500);
   };
 
+  const [markingId, setMarkingId] = useState<string | null>(null);
+  const driverIsLive = Object.values(liveLocations).some((l) => l.role === 'DRIVER');
+
+  const markPickedUp = async (bookingId: string) => {
+    setMarkingId(bookingId);
+    try {
+      await handleMarkPickedUp(bookingId);
+    } finally {
+      setMarkingId(null);
+    }
+  };
+
   if (!trip) {
-    return <div className="p-8 text-center text-slate-500">Loading live road map...</div>;
+    return (
+      <div className="space-y-4" aria-busy="true">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-28 rounded-2xl" />
+        </div>
+        <Skeleton className="h-[420px] rounded-2xl sm:h-[520px]" />
+      </div>
+    );
   }
+
+  const stopEtaMinutes = myPickupEta?.driverToPickupMinutes ?? campusEta?.driverToPickupMinutes;
+  const stopEtaKm = myPickupEta?.driverToPickupKm ?? campusEta?.driverToPickupKm;
 
   return (
     <div className="space-y-4">
-      {/* Live Dynamic ETA Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-          <div className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-cardinal-700" />
-            {myBooking ? `ETA to Your Stop (${myBooking.pickup_label})` : 'Next Pick-Up Stop ETA'}
+      {/* ETA and controls */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className={`${cardCls} p-5`}>
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+            <Clock className="h-4 w-4 text-cardinal-700" />
+            {myBooking ? `ETA to your stop, ${myBooking.pickup_label}` : 'ETA to next pick-up stop'}
           </div>
-          <div className="mt-1.5 text-2xl font-extrabold text-slate-900">
-            {myPickupEta?.driverToPickupMinutes ?? campusEta?.driverToPickupMinutes ?? '—'}{' '}
+          <div className="mt-3 flex items-baseline gap-1.5">
+            <span className="font-display text-4xl font-bold tabular-nums text-slate-900">
+              {stopEtaMinutes ?? '--'}
+            </span>
             <span className="text-sm font-medium text-slate-500">min</span>
           </div>
-          <div className="text-xs text-slate-500 mt-0.5">
-            {(myPickupEta?.driverToPickupKm ?? campusEta?.driverToPickupKm) != null
-              ? `${myPickupEta?.driverToPickupKm ?? campusEta?.driverToPickupKm} km away`
-              : 'Waiting for live driver position'}
+          <div className="mt-1 text-xs text-slate-500">
+            {stopEtaKm != null ? `${stopEtaKm} km away` : 'Waiting for the driver to share a live position'}
           </div>
         </div>
 
-        <div className="bg-cardinal-800 text-white rounded-2xl p-4 shadow-sm">
-          <div className="text-xs font-semibold text-red-200 flex items-center gap-1.5">
-            <Navigation className="w-4 h-4 text-gold-400" />
-            ETA to Mapúa University Intramuros
+        <div className="rounded-2xl bg-cardinal-800 p-5 text-white shadow-card">
+          <div className="flex items-center gap-2 text-xs font-semibold text-red-200">
+            <Navigation className="h-4 w-4 text-gold-400" />
+            ETA to Mapúa Intramuros
           </div>
-          <div className="mt-1.5 text-2xl font-extrabold text-gold-400">
-            {campusEta?.driverToCampusMinutes ?? '—'}{' '}
-            <span className="text-sm font-normal text-red-200">min</span>
+          <div className="mt-3 flex items-baseline gap-1.5">
+            <span className="font-display text-4xl font-bold tabular-nums text-gold-400">
+              {campusEta?.driverToCampusMinutes ?? '--'}
+            </span>
+            <span className="text-sm text-red-200">min</span>
           </div>
-          <div className="text-xs text-red-200 mt-0.5">
+          <div className="mt-1 text-xs text-red-200">
             {campusEta
-              ? `${campusEta.driverToCampusKm} km remaining · Est. arrival ${new Date(
+              ? `${campusEta.driverToCampusKm} km to go, arriving about ${new Date(
                   campusEta.etaToCampusIso
-                ).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-              : 'Calculating route...'}
+                ).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+              : 'Calculating route'}
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between gap-2">
-          <div className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-            <Users className="w-4 h-4 text-emerald-600" />
-            Live Tracking Controls ({Object.keys(liveLocations).length} active pins)
+        <div className={`${cardCls} flex flex-col justify-between gap-3 p-5`}>
+          <div className="flex items-center justify-between gap-2 text-xs font-semibold text-slate-500">
+            <span className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-emerald-600" />
+              Live tracking
+            </span>
+            {driverIsLive ? (
+              <Pill tone="green" live>
+                Driver is live
+              </Pill>
+            ) : (
+              <Pill>Driver offline</Pill>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             <button
+              type="button"
               onClick={toggleRealGps}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                sharingGps
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-900 text-white hover:bg-slate-800'
-              }`}
+              aria-pressed={sharingGps}
+              className={sharingGps ? btn('success', 'sm') : btn('secondary', 'sm')}
             >
-              <Radio className="w-3.5 h-3.5" />
-              {sharingGps ? 'Stop GPS Share' : 'Share My Live GPS'}
+              <Radio className="h-3.5 w-3.5" />
+              {sharingGps ? 'Stop sharing GPS' : 'Share my GPS'}
             </button>
-
             <button
+              type="button"
               onClick={toggleSimulateDrive}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 text-slate-700 hover:bg-slate-100"
-              title="Simulates driving along the road route to test live ETA updates"
+              title="Simulates driving along the route so you can test live ETA updates"
+              className={btn('ghost', 'sm')}
             >
-              {simulating ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-              {simulating ? 'Stop Demo Drive' : 'Simulate Route'}
+              {simulating ? <Square className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+              {simulating ? 'Stop demo drive' : 'Simulate route'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Grab / inDrive-Style Road-Following Live Map */}
-      <div className="h-[500px] rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+      {/* Map */}
+      <div className="h-[420px] overflow-hidden rounded-2xl border border-slate-200/80 shadow-card sm:h-[540px]">
         <MapContainer center={MAPUA_INTRAMUROS_COORDS} zoom={13} scrollWheelZoom>
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          <BaseTiles />
           <FitBoundsOnRoute coords={routeLatLngs} />
 
-          {/* Double-stroke road polyline */}
-          <Polyline
-            positions={routeLatLngs}
-            pathOptions={{ color: '#450A0A', weight: 9, opacity: 0.3 }}
-          />
-          <Polyline
-            positions={routeLatLngs}
-            pathOptions={{ color: '#DC2626', weight: 5, opacity: 0.95 }}
-          />
+          <Polyline positions={routeLatLngs} pathOptions={routeStyles.casing} />
+          <Polyline positions={routeLatLngs} pathOptions={routeStyles.line} />
 
           <Marker position={[trip.origin_lat, trip.origin_lng]} icon={startIcon}>
             <Popup>
-              <strong>Start:</strong> {trip.origin_name}
+              <strong>Start</strong>
+              <br />
+              {trip.origin_name}
             </Popup>
           </Marker>
 
           {trip.pickup_points.map((stop, idx) => {
             const stopRiders = passengers.filter((b) => b.pickup_point_id === stop.id);
             return (
-              <Marker key={stop.id} position={[stop.lat, stop.lng]} icon={stopCircleIcon(idx + 1)}>
+              <Marker key={stop.id} position={[stop.lat, stop.lng]} icon={stopIcon(idx + 1)}>
                 <Popup>
-                  <div className="text-xs space-y-1">
+                  <div className="space-y-1 text-xs">
                     <strong>
-                      Stop {idx + 1}: {stop.label}
+                      Stop {idx + 1}, {stop.label}
                     </strong>
                     <p className="text-slate-600">{stop.address}</p>
                     {stopRiders.length > 0 && (
-                      <div className="pt-1 border-t border-slate-200">
-                        <div className="font-semibold text-slate-800">Riders here:</div>
+                      <div className="border-t border-slate-200 pt-1">
+                        <div className="font-semibold text-slate-800">Riders here</div>
                         {stopRiders.map((r) => (
                           <div key={r.id} className="text-cardinal-700">
-                            • {r.rider_name} ({r.status === 'BOARDED' ? 'Picked Up' : 'Waiting'})
+                            {r.rider_name} ({r.status === 'BOARDED' ? 'picked up' : 'waiting'})
                           </div>
                         ))}
                       </div>
                     )}
                     {pickupEtas[stop.id]?.driverToPickupMinutes != null && (
                       <p className="font-semibold text-cardinal-700">
-                        Live Driver ETA: {pickupEtas[stop.id].driverToPickupMinutes} min
+                        Driver ETA {pickupEtas[stop.id].driverToPickupMinutes} min
                       </p>
                     )}
                   </div>
@@ -342,7 +348,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
 
           <Marker position={MAPUA_INTRAMUROS_COORDS} icon={campusIcon}>
             <Popup>
-              <strong>Mapúa University — Intramuros</strong>
+              <strong>Mapúa University Intramuros</strong>
               <br />
               658 Muralla St, Intramuros, Manila
             </Popup>
@@ -356,9 +362,9 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
             >
               <Popup>
                 <div className="text-xs">
-                  <strong>{loc.full_name}</strong> ({loc.role})
+                  <strong>{loc.full_name}</strong> ({loc.role === 'DRIVER' ? 'driver' : 'rider'})
                   <br />
-                  Updated: {new Date(loc.updated_at).toLocaleTimeString()}
+                  Updated {new Date(loc.updated_at).toLocaleTimeString()}
                 </div>
               </Popup>
             </Marker>
@@ -366,93 +372,82 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
         </MapContainer>
       </div>
 
-      {/* Passenger Pick-Up Manifest Panel */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3">
+      {/* Passenger manifest */}
+      <section className={`${cardCls} space-y-4 p-5`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="font-bold text-slate-900 flex items-center gap-2 text-base">
-              <UserCheck className="w-5 h-5 text-cardinal-700" />
-              {isDriver ? 'Your Passenger Pick-Up Manifest' : 'Carpool Passengers & Stops'} (
-              {passengers.length})
+            <h3 className="flex items-center gap-2 text-base font-bold text-slate-900">
+              <UserCheck className="h-5 w-5 text-cardinal-700" />
+              {isDriver ? 'Your pick-up list' : 'Passengers and stops'} ({passengers.length})
             </h3>
-            <p className="text-xs text-slate-500">
-              Ordered by pick-up stop along your route to Mapúa University Intramuros.
-            </p>
+            <p className="mt-0.5 text-xs text-slate-500">Ordered by pick-up stop along the route to Intramuros.</p>
           </div>
           <div className="text-xs font-semibold text-slate-600">
-            {trip.total_seats - trip.available_seats} / {trip.total_seats} seats filled
+            {trip.total_seats - trip.available_seats} of {trip.total_seats} seats filled
           </div>
         </div>
 
         {passengers.length === 0 ? (
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center">
-            No riders have booked this trip yet. Once Mapúa students or faculty reserve a seat, their name and pick-up stop will show up here.
+          <div className="rounded-xl bg-slate-50 p-5 text-center text-sm text-slate-500">
+            Nobody has booked this trip yet. Riders and their pick-up stops will appear here.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {passengers.map((b) => {
               const stopEta = pickupEtas[b.pickup_point_id];
               return (
                 <div
                   key={b.id}
-                  className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 flex flex-col justify-between gap-2.5"
+                  className="flex flex-col justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4"
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                        <span>{b.rider_name}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-semibold">
-                          {b.rider_role}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-1.5 text-sm font-bold text-slate-900">
+                        {b.rider_name}
+                        <Pill>{b.rider_role === 'FACULTY' ? 'Faculty' : 'Student'}</Pill>
                       </div>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                          b.status === 'BOARDED'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : b.status === 'COMPLETED'
-                              ? 'bg-slate-200 text-slate-700'
-                              : 'bg-amber-100 text-amber-800'
-                        }`}
-                      >
-                        {b.status === 'BOARDED' ? 'Picked Up' : b.status}
-                      </span>
+                      <StatusPill status={b.status} />
                     </div>
 
                     {b.rider_department && (
                       <div className="text-xs text-slate-500">
                         {b.rider_department}
-                        {b.rider_university_id ? ` · ID: ${b.rider_university_id}` : ''}
+                        {b.rider_university_id ? `, ID ${b.rider_university_id}` : ''}
                       </div>
                     )}
 
-                    <div className="pt-1 flex items-start gap-1.5 text-xs">
-                      <MapPin className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-1.5 pt-1 text-xs">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold-600" />
                       <div>
                         <div className="font-semibold text-cardinal-900">
-                          {b.pickup_sequence ? `Stop ${b.pickup_sequence}: ` : ''}
+                          {b.pickup_sequence ? `Stop ${b.pickup_sequence} at ` : ''}
                           {b.pickup_label}
                         </div>
-                        {b.pickup_address && (
-                          <div className="text-[11px] text-slate-500">{b.pickup_address}</div>
-                        )}
+                        {b.pickup_address && <div className="text-[11px] text-slate-500">{b.pickup_address}</div>}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-xs">
-                    <span className="text-slate-600">
+                  <div className="flex items-center justify-between gap-2 border-t border-slate-200/80 pt-3 text-xs">
+                    <span className="tabular-nums text-slate-600">
                       {stopEta?.driverToPickupMinutes != null
-                        ? `Live ETA: ${stopEta.driverToPickupMinutes} min (${stopEta.driverToPickupKm} km)`
-                        : `${b.seats_booked} seat · ${b.tokens_escrowed} tokens`}
+                        ? `Driver ETA ${stopEta.driverToPickupMinutes} min (${stopEta.driverToPickupKm} km)`
+                        : `${b.seats_booked} seat, ${b.tokens_escrowed} tokens`}
                     </span>
 
                     {isDriver && b.status === 'CONFIRMED' && (
                       <button
                         type="button"
-                        onClick={() => handleMarkPickedUp(b.id)}
-                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition"
+                        disabled={markingId === b.id}
+                        onClick={() => markPickedUp(b.id)}
+                        className={btn('success', 'sm')}
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Mark Picked Up
+                        {markingId === b.id ? (
+                          <Spinner className="h-3.5 w-3.5" />
+                        ) : (
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        )}
+                        Mark picked up
                       </button>
                     )}
                   </div>
@@ -461,7 +456,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
             })}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 };
