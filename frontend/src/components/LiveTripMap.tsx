@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import React, { useEffect, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Clock, Navigation, Play, Radio, Square, Users } from 'lucide-react';
 import { LiveEtaSummary, LiveLocation, MAPUA_INTRAMUROS_COORDS, Trip } from '../types';
 import { apiRequest } from '../services/api';
 import { getTrackingSocket } from '../services/socket';
+import { fetchRoadRoute } from '../services/geo';
 import { useAuth } from '../context/AuthContext';
 
 interface LiveTripMapProps {
@@ -13,19 +14,39 @@ interface LiveTripMapProps {
 
 const makeBadgeIcon = (bg: string, text: string, label: string) =>
   L.divIcon({
-    className: 'cardinal-map-badge',
-    html: `<div style="background:${bg};color:${text};font-weight:700;font-size:11px;padding:4px 9px;border-radius:999px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);white-space:nowrap;">${label}</div>`,
-    iconSize: [110, 26],
-    iconAnchor: [55, 13],
+    className: 'cardiride-map-badge',
+    html: `<div style="background:${bg};color:${text};font-weight:700;font-size:11px;padding:5px 10px;border-radius:999px;border:2px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.35);white-space:nowrap;">${label}</div>`,
+    iconSize: [120, 28],
+    iconAnchor: [60, 14],
   });
 
+const stopCircleIcon = (num: number) =>
+  L.divIcon({
+    className: 'cardiride-stop-circle',
+    html: `<div style="background:#F59E0B;color:#111827;font-weight:800;font-size:12px;width:28px;height:28px;border-radius:999px;border:2.5px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">${num}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+
+const startIcon = makeBadgeIcon('#059669', '#FFFFFF', 'Start');
 const campusIcon = makeBadgeIcon('#991B1B', '#FBBF24', 'Mapúa Intramuros');
 const driverIcon = makeBadgeIcon('#0F172A', '#38BDF8', 'Driver Live');
 const riderIcon = makeBadgeIcon('#047857', '#FFFFFF', 'Rider Live');
 
+function FitBoundsOnRoute({ coords }: { coords: [number, number][] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (coords.length >= 2) {
+      map.fitBounds(L.latLngBounds(coords), { padding: [50, 50], maxZoom: 15 });
+    }
+  }, [coords, map]);
+  return null;
+}
+
 export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
   const { user } = useAuth();
   const [trip, setTrip] = useState<Trip | null>(null);
+  const [routeLatLngs, setRouteLatLngs] = useState<[number, number][]>([MAPUA_INTRAMUROS_COORDS]);
   const [liveLocations, setLiveLocations] = useState<Record<string, LiveLocation>>({});
   const [campusEta, setCampusEta] = useState<LiveEtaSummary | null>(null);
   const [pickupEtas, setPickupEtas] = useState<Record<string, LiveEtaSummary>>({});
@@ -36,15 +57,31 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
 
   useEffect(() => {
     let active = true;
-    apiRequest<{ trip: Trip }>(`/trips/${tripId}`).then((res) => {
+    apiRequest<{ trip: Trip }>(`/trips/${tripId}`).then(async (res) => {
       if (!active) return;
-      setTrip(res.trip);
-      if (res.trip.eta) setCampusEta(res.trip.eta);
+      const loadedTrip = res.trip;
+      setTrip(loadedTrip);
+      if (loadedTrip.eta) setCampusEta(loadedTrip.eta);
+
       const map: Record<string, LiveLocation> = {};
-      (res.trip.live_locations || []).forEach((loc) => {
+      (loadedTrip.live_locations || []).forEach((loc) => {
         map[loc.user_id] = loc;
       });
       setLiveLocations(map);
+
+      // Use saved OSRM geometry if dense enough; otherwise fetch live road-following path
+      const savedCoords = loadedTrip.route_geojson?.coordinates || [];
+      if (savedCoords.length > loadedTrip.pickup_points.length + 4) {
+        setRouteLatLngs(savedCoords.map(([lng, lat]) => [lat, lng]));
+      } else {
+        const waypoints = [
+          { lat: loadedTrip.origin_lat, lng: loadedTrip.origin_lng },
+          ...loadedTrip.pickup_points.map((p) => ({ lat: p.lat, lng: p.lng })),
+          { lat: MAPUA_INTRAMUROS_COORDS[0], lng: MAPUA_INTRAMUROS_COORDS[1] },
+        ];
+        const road = await fetchRoadRoute(waypoints);
+        if (active) setRouteLatLngs(road.coordinates);
+      }
     });
 
     const socket = getTrackingSocket();
@@ -88,18 +125,6 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
     };
   }, [tripId]);
 
-  const routeLatLngs = useMemo<[number, number][]>(() => {
-    if (!trip) return [MAPUA_INTRAMUROS_COORDS];
-    if (trip.route_geojson?.coordinates?.length) {
-      return trip.route_geojson.coordinates.map(([lng, lat]) => [lat, lng]);
-    }
-    return [
-      [trip.origin_lat, trip.origin_lng],
-      ...trip.pickup_points.map((p): [number, number] => [p.lat, p.lng]),
-      MAPUA_INTRAMUROS_COORDS,
-    ];
-  }, [trip]);
-
   const isDriver = user?.id === trip?.driver_id;
   const myBooking = trip?.bookings?.find((b) => b.rider_id === user?.id);
   const myPickupEta = myBooking ? pickupEtas[myBooking.pickup_point_id] : null;
@@ -113,7 +138,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
     }
 
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser. Use the GPS Simulator below for local testing.');
+      alert('Geolocation is not supported by your browser. Use Simulate Route below for testing.');
       return;
     }
 
@@ -135,7 +160,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
     setSharingGps(true);
   };
 
-  // Built-in route simulator so developers/evaluators can test live ETA updates locally
+  // Smoothly drives along the actual road-following coordinates
   const toggleSimulateDrive = () => {
     if (simulating) {
       if (simTimerRef.current !== null) window.clearInterval(simTimerRef.current);
@@ -146,6 +171,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
 
     const socket = getTrackingSocket();
     let idx = 0;
+    const step = Math.max(1, Math.floor(routeLatLngs.length / 25));
     setSimulating(true);
     simTimerRef.current = window.setInterval(() => {
       if (idx >= routeLatLngs.length) {
@@ -161,13 +187,16 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
         lng,
         speedKmh: 28,
       });
-      idx = Math.min(routeLatLngs.length - 1, idx + Math.max(1, Math.floor(routeLatLngs.length / 15)));
-      if (idx === routeLatLngs.length - 1) idx++;
-    }, 2000);
+      if (idx === routeLatLngs.length - 1) {
+        idx = routeLatLngs.length;
+      } else {
+        idx = Math.min(routeLatLngs.length - 1, idx + step);
+      }
+    }, 1500);
   };
 
   if (!trip) {
-    return <div className="p-8 text-center text-slate-500">Loading live route map...</div>;
+    return <div className="p-8 text-center text-slate-500">Loading live road map...</div>;
   }
 
   return (
@@ -229,7 +258,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
             <button
               onClick={toggleSimulateDrive}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 text-slate-700 hover:bg-slate-100"
-              title="Simulates moving along the route to test live Socket.IO ETA updates"
+              title="Simulates driving along the road route to test live ETA updates"
             >
               {simulating ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               {simulating ? 'Stop Demo Drive' : 'Simulate Route'}
@@ -238,31 +267,33 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
         </div>
       </div>
 
-      {/* Interactive Leaflet Map */}
-      <div className="h-[500px] rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+      {/* Grab / inDrive-Style Road-Following Live Map */}
+      <div className="h-[520px] rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
         <MapContainer center={MAPUA_INTRAMUROS_COORDS} zoom={13} scrollWheelZoom>
           <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="&copy; OpenStreetMap &copy; CARTO"
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          />
+          <FitBoundsOnRoute coords={routeLatLngs} />
+
+          {/* Grab/inDrive-style double-stroke road polyline */}
+          <Polyline
+            positions={routeLatLngs}
+            pathOptions={{ color: '#450A0A', weight: 9, opacity: 0.3 }}
+          />
+          <Polyline
+            positions={routeLatLngs}
+            pathOptions={{ color: '#DC2626', weight: 5, opacity: 0.95 }}
           />
 
-          {/* Full Driving Route to Mapúa Intramuros */}
-          <Polyline positions={routeLatLngs} pathOptions={{ color: '#991B1B', weight: 5, opacity: 0.85 }} />
-
-          {/* Origin Marker */}
-          <Marker position={[trip.origin_lat, trip.origin_lng]}>
+          <Marker position={[trip.origin_lat, trip.origin_lng]} icon={startIcon}>
             <Popup>
               <strong>Start:</strong> {trip.origin_name}
             </Popup>
           </Marker>
 
-          {/* Driver-Defined Along-the-Way Pick-Up Points */}
           {trip.pickup_points.map((stop, idx) => (
-            <Marker
-              key={stop.id}
-              position={[stop.lat, stop.lng]}
-              icon={makeBadgeIcon('#F59E0B', '#1E293B', `Stop ${idx + 1}: ${stop.label}`)}
-            >
+            <Marker key={stop.id} position={[stop.lat, stop.lng]} icon={stopCircleIcon(idx + 1)}>
               <Popup>
                 <div className="text-xs">
                   <strong>
@@ -279,7 +310,6 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
             </Marker>
           ))}
 
-          {/* Fixed Mapúa University Intramuros Destination */}
           <Marker position={MAPUA_INTRAMUROS_COORDS} icon={campusIcon}>
             <Popup>
               <strong>Mapúa University — Intramuros</strong>
@@ -288,7 +318,6 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
             </Popup>
           </Marker>
 
-          {/* Live Driver & Booked Rider GPS Positions */}
           {Object.values(liveLocations).map((loc) => (
             <Marker
               key={loc.user_id}
