@@ -9,7 +9,7 @@ import { Spinner, btn, cardCls, inputCls, labelCls } from './ui';
 const THEME_OPTIONS: Array<{
   id: ThemePreference;
   label: string;
-  Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  Icon: React.ComponentType<{ className?: string; strokeWidth?: string | number }>;
 }> = [
   { id: 'system', label: 'System', Icon: Monitor },
   { id: 'light', label: 'Light', Icon: Sun },
