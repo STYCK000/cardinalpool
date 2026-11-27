@@ -17,7 +17,8 @@ import { apiRequest } from '../services/api';
 import { getTrackingSocket } from '../services/socket';
 import { fetchRoadRoute } from '../services/geo';
 import { useAuth } from '../context/AuthContext';
-import { BaseTiles, campusIcon, driverIcon, riderIcon, routeStyles, startIcon, stopIcon } from './MapKit';
+import { BaseTiles, SmoothCarMarker, campusIcon, riderIcon, routeStyles, startIcon, stopIcon } from './MapKit';
+import { TripChatPanel } from './TripChatPanel';
 import { Pill, Skeleton, Spinner, StatusPill, btn, cardCls } from './ui';
 
 interface LiveTripMapProps {
@@ -169,7 +170,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
 
     const socket = getTrackingSocket();
     let idx = 0;
-    const step = Math.max(1, Math.floor(routeLatLngs.length / 25));
+    const step = Math.max(1, Math.floor(routeLatLngs.length / 45));
     setSimulating(true);
     simTimerRef.current = window.setInterval(() => {
       if (idx >= routeLatLngs.length) {
@@ -190,7 +191,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
       } else {
         idx = Math.min(routeLatLngs.length - 1, idx + step);
       }
-    }, 1500);
+    }, 1000);
   };
 
   const [markingId, setMarkingId] = useState<string | null>(null);
@@ -231,7 +232,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
             {myBooking ? `ETA to your stop, ${myBooking.pickup_label}` : 'ETA to next pick-up stop'}
           </div>
           <div className="mt-3 flex items-baseline gap-1.5">
-            <span className="font-display text-4xl font-bold tabular-nums text-slate-900">
+            <span className="font-display text-4xl font-semibold tabular-nums text-slate-900">
               {stopEtaMinutes ?? '--'}
             </span>
             <span className="text-sm font-medium text-slate-500">min</span>
@@ -247,7 +248,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
             ETA to Mapúa Intramuros
           </div>
           <div className="mt-3 flex items-baseline gap-1.5">
-            <span className="font-display text-4xl font-bold tabular-nums text-gold-400">
+            <span className="font-display text-4xl font-semibold tabular-nums text-gold-400">
               {campusEta?.driverToCampusMinutes ?? '--'}
             </span>
             <span className="text-sm text-red-200">min</span>
@@ -354,29 +355,39 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
             </Popup>
           </Marker>
 
-          {Object.values(liveLocations).map((loc) => (
-            <Marker
-              key={loc.user_id}
-              position={[loc.lat, loc.lng]}
-              icon={loc.role === 'DRIVER' ? driverIcon : riderIcon}
-            >
-              <Popup>
-                <div className="text-xs">
-                  <strong>{loc.full_name}</strong> ({loc.role === 'DRIVER' ? 'driver' : 'rider'})
-                  <br />
-                  Updated {new Date(loc.updated_at).toLocaleTimeString()}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+          {Object.values(liveLocations).map((loc) =>
+            loc.role === 'DRIVER' ? (
+              <SmoothCarMarker
+                key={loc.user_id}
+                position={[loc.lat, loc.lng]}
+                heading={loc.heading}
+                driverName={loc.full_name}
+                updatedAt={loc.updated_at}
+                durationMs={950}
+              />
+            ) : (
+              <Marker key={loc.user_id} position={[loc.lat, loc.lng]} icon={riderIcon}>
+                <Popup>
+                  <div className="text-xs">
+                    <strong>{loc.full_name}</strong> (Rider)
+                    <br />
+                    Updated {new Date(loc.updated_at).toLocaleTimeString()}
+                  </div>
+                </Popup>
+              </Marker>
+            )
+          )}
         </MapContainer>
       </div>
 
       {/* Passenger manifest */}
+      {/* Real-Time Driver <-> Rider Chat */}
+      <TripChatPanel tripId={tripId} isDriver={isDriver} />
+
       <section className={`${cardCls} space-y-4 p-5`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="flex items-center gap-2 text-base font-bold text-slate-900">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
               <UserCheck className="h-5 w-5 text-cardinal-700" />
               {isDriver ? 'Your pick-up list' : 'Passengers and stops'} ({passengers.length})
             </h3>
@@ -402,7 +413,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex flex-wrap items-center gap-1.5 text-sm font-bold text-slate-900">
+                      <div className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-slate-900">
                         {b.rider_name}
                         <Pill>{b.rider_role === 'FACULTY' ? 'Faculty' : 'Student'}</Pill>
                       </div>

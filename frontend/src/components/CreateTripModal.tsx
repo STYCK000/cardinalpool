@@ -265,7 +265,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/55 backdrop-blur-[3px] animate-overlay-in"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/30 backdrop-blur-md animate-overlay-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="create-trip-title"
@@ -276,10 +276,10 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
           if (e.target === e.currentTarget) onClose();
         }}
       >
-        <div className="w-full max-w-6xl overflow-hidden rounded-t-3xl bg-white shadow-lift animate-sheet-in sm:rounded-3xl">
+        <div className="w-full max-w-6xl overflow-hidden rounded-t-[28px] bg-white shadow-lift animate-sheet-in sm:rounded-[28px]">
           <div className="flex items-start justify-between gap-4 bg-cardinal-800 px-5 py-4 text-white sm:px-6">
             <div>
-              <h2 id="create-trip-title" className="text-lg font-bold tracking-tight">
+              <h2 id="create-trip-title" className="text-lg font-semibold tracking-tight">
                 Post a ride to Mapúa Intramuros
               </h2>
               <p className="mt-0.5 text-xs text-red-200">
@@ -408,7 +408,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
                       className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-2.5 animate-fade-in"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold-400 text-[11px] font-bold text-slate-900">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold-400 text-[11px] font-semibold text-slate-900">
                           {idx + 1}
                         </span>
                         <input
@@ -442,7 +442,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
               <div className="flex items-center gap-3 rounded-xl border border-cardinal-100 bg-cardinal-50 px-3.5 py-3">
                 <Navigation className="h-4 w-4 shrink-0 text-cardinal-700" />
                 <div>
-                  <div className="text-sm font-bold text-cardinal-900">Mapúa University Intramuros</div>
+                  <div className="text-sm font-semibold text-cardinal-900">Mapúa University Intramuros</div>
                   <div className="text-xs text-cardinal-700">658 Muralla St, Intramuros, Manila. Fixed destination.</div>
                 </div>
               </div>

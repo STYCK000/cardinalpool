@@ -42,8 +42,8 @@ const PageHeading: React.FC<{
 }> = ({ title, children, action }) => (
   <div className="flex flex-wrap items-end justify-between gap-3">
     <div className="max-w-2xl">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h2>
-      {children && <p className="mt-1 text-sm leading-relaxed text-slate-500">{children}</p>}
+      <h2 className="text-[28px] font-semibold tracking-[-0.025em] text-slate-900">{title}</h2>
+      {children && <p className="mt-1.5 text-[15px] leading-relaxed text-slate-500">{children}</p>}
     </div>
     {action}
   </div>
@@ -193,7 +193,7 @@ export default function App() {
   );
 
   const tripGrid = (list: Trip[], own: boolean) => (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {list.map((trip) => (
         <TripCard
           key={trip.id}
@@ -225,12 +225,12 @@ export default function App() {
         onModeError={(msg) => setBanner({ type: 'error', text: msg })}
       />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-28 pt-6 sm:px-6 md:pb-12 lg:px-8">
-        <div key={activeTab} className="animate-fade-in space-y-6">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-28 pt-8 sm:px-6 md:pb-16 lg:px-8">
+        <div key={activeTab} className="animate-fade-in space-y-8">
           {/* FIND RIDES */}
           {activeTab === 'browse' && (
             <>
-              <section className="relative overflow-hidden rounded-3xl bg-cardinal-800 text-white">
+              <section className="relative overflow-hidden rounded-[28px] bg-cardinal-800 text-white shadow-card">
                 <svg
                   aria-hidden
                   viewBox="0 0 420 220"
@@ -252,12 +252,12 @@ export default function App() {
                   <circle cx="410" cy="36" r="4" fill="#7F1D1D" />
                 </svg>
 
-                <div className="relative flex flex-col gap-6 p-6 sm:p-8 md:max-w-[62%]">
+                <div className="relative flex flex-col gap-8 p-7 sm:p-10 md:max-w-[62%]">
                   <div>
-                    <h1 className="text-3xl font-bold leading-[1.1] tracking-tight sm:text-4xl">
+                    <h1 className="text-[34px] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-5xl">
                       Rides to Mapúa Intramuros
                     </h1>
-                    <p className="mt-3 max-w-md text-sm leading-relaxed text-red-100/90 sm:text-base">
+                    <p className="mt-4 max-w-md text-[15px] leading-relaxed text-red-100/85 sm:text-[17px]">
                       Pick a stop along the driver&apos;s route and reserve a seat. Bookings close 24
                       hours before departure.
                     </p>
@@ -267,13 +267,13 @@ export default function App() {
                     {!tripsLoading && trips.length > 0 && (
                       <dl className="flex gap-8">
                         <div>
-                          <dd className="font-display text-3xl font-bold tabular-nums text-gold-400">
+                          <dd className="font-display text-4xl font-semibold tracking-tight tabular-nums text-white">
                             {trips.length}
                           </dd>
                           <dt className="text-xs text-red-100/80">upcoming rides</dt>
                         </div>
                         <div>
-                          <dd className="font-display text-3xl font-bold tabular-nums text-gold-400">
+                          <dd className="font-display text-4xl font-semibold tracking-tight tabular-nums text-white">
                             {seatsOpen}
                           </dd>
                           <dt className="text-xs text-red-100/80">open seats</dt>
@@ -284,7 +284,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => setShowCreateModal(true)}
-                        className={btn('gold')}
+                        className={btn('light')}
                       >
                         <Plus className="h-4 w-4" />
                         Post a trip
@@ -295,7 +295,7 @@ export default function App() {
               </section>
 
               {tripsLoading ? (
-                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <TripCardSkeleton />
                   <TripCardSkeleton />
                 </div>
@@ -327,7 +327,7 @@ export default function App() {
                     See who is riding with you, where they get picked up, and mark them as picked up.
                   </PageHeading>
                   {tripsLoading ? (
-                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                       <TripCardSkeleton />
                     </div>
                   ) : myDrivenTrips.length === 0 ? (
@@ -404,7 +404,7 @@ export default function App() {
                         id="map-trip"
                         value={selectedMapTripId || ''}
                         onChange={(e) => setSelectedMapTripId(e.target.value)}
-                        className="max-w-[18rem] appearance-none truncate rounded-xl border border-slate-300 bg-white py-2.5 pl-3.5 pr-9 text-sm font-medium text-slate-800 transition focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/10"
+                        className="max-w-[18rem] appearance-none truncate rounded-xl border border-slate-300 bg-white py-2.5 pl-4 pr-9 text-[15px] font-medium text-slate-900 transition hover:border-slate-400 focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/15"
                       >
                         {trips.map((t) => (
                           <option key={t.id} value={t.id}>

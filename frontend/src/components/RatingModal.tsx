@@ -71,11 +71,11 @@ export const RatingModal: React.FC<RatingModalProps> = ({
   const activeStars = hoverStars || stars;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div className={`${cardCls} w-full max-w-md overflow-hidden shadow-2xl`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-md animate-overlay-in">
+      <div className={`${cardCls} w-full max-w-md overflow-hidden shadow-lift animate-sheet-in`}>
         <div className="flex items-center justify-between bg-cardinal-800 px-5 py-4 text-white">
           <div>
-            <h2 className="text-base font-bold">
+            <h2 className="text-base font-semibold">
               Rate {targetRole === 'DRIVER' ? 'Your Driver' : 'Your Rider'}
             </h2>
             <p className="text-xs text-red-200">{tripSummary}</p>

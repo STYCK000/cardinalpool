@@ -74,12 +74,12 @@ export const ProfileSettings: React.FC = () => {
       <div className={`${cardCls} flex flex-wrap items-center gap-4 p-5`}>
         <div
           aria-hidden
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-cardinal-800 font-display text-xl font-bold text-gold-400"
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-cardinal-800 font-display text-xl font-semibold text-gold-400"
         >
           {initials || 'M'}
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-xl font-bold tracking-tight text-slate-900">{user.full_name}</h2>
+          <h2 className="truncate text-xl font-semibold tracking-tight text-slate-900">{user.full_name}</h2>
           <p className="truncate text-sm text-slate-500">{user.email}</p>
           <p className="mt-0.5 text-xs text-slate-500">
             {user.university_role === 'FACULTY' ? 'Faculty' : 'Student'}, ID {user.university_id_number}
@@ -112,7 +112,7 @@ export const ProfileSettings: React.FC = () => {
         )}
 
         <section className="space-y-4">
-          <h3 className="text-base font-bold text-slate-900">Your details</h3>
+          <h3 className="text-base font-semibold text-slate-900">Your details</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="profile-name" className={labelCls}>
@@ -145,7 +145,7 @@ export const ProfileSettings: React.FC = () => {
 
         <section className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
           <div>
-            <h3 className="flex items-center gap-2 text-base font-bold text-slate-900">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
               <Car className="h-4 w-4 text-cardinal-700" />
               Vehicle
             </h3>
@@ -215,7 +215,7 @@ export const ProfileSettings: React.FC = () => {
       <section className={`${cardCls} p-5 space-y-4`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
               <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
               Your CardiRide Rating
             </h3>
@@ -225,7 +225,7 @@ export const ProfileSettings: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3.5 py-2 ring-1 ring-amber-200">
             <Star className="h-5 w-5 fill-amber-400 text-amber-500" />
-            <span className="text-lg font-extrabold text-slate-900">
+            <span className="text-lg font-semibold text-slate-900">
               {ratingSummary?.avg_rating != null ? ratingSummary.avg_rating.toFixed(1) : 'New'}
             </span>
             <span className="text-xs text-slate-500">
@@ -237,14 +237,14 @@ export const ProfileSettings: React.FC = () => {
         <div className="grid grid-cols-2 gap-3 text-xs">
           <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200/80">
             <div className="text-slate-500">As Driver</div>
-            <div className="mt-1 font-bold text-slate-900">
+            <div className="mt-1 font-semibold text-slate-900">
               {ratingSummary?.as_driver_avg != null ? `${ratingSummary.as_driver_avg.toFixed(1)} ★` : 'No ratings yet'}{' '}
               <span className="font-normal text-slate-500">({ratingSummary?.as_driver_count ?? 0})</span>
             </div>
           </div>
           <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200/80">
             <div className="text-slate-500">As Rider</div>
-            <div className="mt-1 font-bold text-slate-900">
+            <div className="mt-1 font-semibold text-slate-900">
               {ratingSummary?.as_rider_avg != null ? `${ratingSummary.as_rider_avg.toFixed(1)} ★` : 'No ratings yet'}{' '}
               <span className="font-normal text-slate-500">({ratingSummary?.as_rider_count ?? 0})</span>
             </div>
@@ -263,7 +263,7 @@ export const ProfileSettings: React.FC = () => {
                       ({rev.rater_role === 'RIDER' ? 'Rider' : 'Driver'})
                     </span>
                   </span>
-                  <span className="inline-flex items-center gap-0.5 font-bold text-amber-700">
+                  <span className="inline-flex items-center gap-0.5 font-semibold text-amber-700">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
                     {rev.stars}/5
                   </span>

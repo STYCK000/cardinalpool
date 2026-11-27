@@ -38,7 +38,7 @@ export const BookingCard: React.FC<BookingCardProps> = ({ booking: b, onTrack, o
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold tracking-tight text-slate-900">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-semibold tracking-tight text-slate-900">
           <span>{b.pickup_label}</span>
           <ArrowRight className="h-4 w-4 text-slate-400" aria-label="to" />
           <span>Mapúa Intramuros</span>

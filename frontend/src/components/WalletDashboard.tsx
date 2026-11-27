@@ -93,7 +93,7 @@ export const WalletDashboard: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="max-w-2xl">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Token wallet</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Token wallet</h2>
           <p className="mt-1 text-sm leading-relaxed text-slate-500">
             Riders pay in Cardinal tokens. Tokens stay on hold until the trip ends, then go to the driver.
           </p>
@@ -111,7 +111,7 @@ export const WalletDashboard: React.FC = () => {
             <Coins className="h-5 w-5 text-gold-400" />
           </div>
           <div className="mt-6">
-            <div className="font-display text-5xl font-extrabold tabular-nums tracking-tight text-gold-400">
+            <div className="font-display text-5xl font-semibold tabular-nums tracking-tight text-gold-400">
               {wallet.tokenBalance}
             </div>
             <div className="mt-1 text-sm text-red-200">Cardinal tokens</div>
@@ -126,7 +126,7 @@ export const WalletDashboard: React.FC = () => {
                 <Icon className={`h-4 w-4 ${iconCls}`} />
               </dt>
               <div>
-                <dd className={`font-display text-3xl font-bold tabular-nums ${valueCls}`}>{value}</dd>
+                <dd className={`font-display text-3xl font-semibold tabular-nums ${valueCls}`}>{value}</dd>
                 <p className="mt-1 text-xs leading-snug text-slate-500">{note}</p>
               </div>
             </div>
@@ -136,7 +136,7 @@ export const WalletDashboard: React.FC = () => {
 
       <section className={`${cardCls} overflow-hidden`}>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-          <h3 className="text-base font-bold text-slate-900">Transaction history</h3>
+          <h3 className="text-base font-semibold text-slate-900">Transaction history</h3>
           <div
             role="group"
             aria-label="Filter transactions"
@@ -195,7 +195,7 @@ export const WalletDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <div className={`text-sm font-bold tabular-nums ${credit ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <div className={`text-sm font-semibold tabular-nums ${credit ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {credit ? `+${tx.amount}` : tx.amount}
                     </div>
                     <div className="mt-0.5 text-xs tabular-nums text-slate-500">Balance {tx.balance_after}</div>

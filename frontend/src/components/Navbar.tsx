@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
     id: ActiveTab;
     label: string;
     short: string;
-    Icon: React.ComponentType<{ className?: string }>;
+    Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   }> = [
     { id: 'browse', label: 'Find rides', short: 'Rides', Icon: Compass },
     {
@@ -55,24 +55,21 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+      <header className="glass sticky top-0 z-40 border-b border-black/[0.06]">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => onSelectTab('browse')}
-            className="flex items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600 focus-visible:ring-offset-2"
+            className="flex items-center gap-2.5 rounded-xl transition active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600 focus-visible:ring-offset-2"
             aria-label="CardiRide home"
           >
-            <img src="/cardiride-icon.png" alt="" className="h-9 w-9 rounded-xl object-contain" />
-            <span className="hidden text-left leading-none sm:block">
-              <span className="block font-display text-[17px] font-bold tracking-tight text-cardinal-800">
-                CardiRide
-              </span>
-              <span className="mt-1 block text-[11px] text-slate-500">Mapúans Moving Mapúans</span>
+            <img src="/cardiride-icon.png" alt="" className="h-8 w-8 rounded-[10px] object-contain" />
+            <span className="hidden font-display text-[17px] font-semibold tracking-tight text-slate-900 sm:block">
+              CardiRide
             </span>
           </button>
 
-          <nav className="ml-4 hidden h-full items-stretch gap-1 md:flex" aria-label="Primary">
+          <nav className="ml-3 hidden items-center gap-0.5 md:flex" aria-label="Primary">
             {navItems.map(({ id, label, Icon }) => {
               const active = activeTab === id;
               return (
@@ -81,13 +78,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
                   type="button"
                   onClick={() => onSelectTab(id)}
                   aria-current={active ? 'page' : undefined}
-                  className={`relative flex items-center gap-2 px-3.5 text-sm font-medium transition-colors duration-150 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:origin-center after:rounded-full after:bg-cardinal-700 after:transition-transform after:duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cardinal-600 ${
+                  className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[14px] font-medium tracking-[-0.01em] transition duration-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600 ${
                     active
-                      ? 'text-cardinal-800 after:scale-x-100'
-                      : 'text-slate-600 after:scale-x-0 hover:text-slate-900'
+                      ? 'bg-slate-900/[0.07] text-slate-900'
+                      : 'text-slate-500 hover:bg-slate-900/[0.04] hover:text-slate-900'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-[17px] w-[17px]" strokeWidth={active ? 2.1 : 1.8} />
                   {label}
                 </button>
               );
@@ -99,21 +96,21 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
               type="button"
               onClick={() => onSelectTab('wallet')}
               title="Cardinal token balance"
-              className="inline-flex items-center gap-1.5 rounded-full bg-gold-400/15 px-3 py-1.5 text-sm font-semibold tabular-nums text-amber-900 ring-1 ring-gold-500/35 transition hover:bg-gold-400/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-600"
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/[0.05] px-3 py-1.5 text-[13px] font-semibold tabular-nums text-slate-900 transition duration-200 hover:bg-slate-900/[0.09] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600"
             >
-              <Coins className="h-4 w-4 text-gold-600" />
+              <Coins className="h-4 w-4 text-gold-600" strokeWidth={2} />
               {user.token_balance}
-              <span className="hidden text-xs font-medium text-amber-800/70 sm:inline">tokens</span>
+              <span className="hidden text-xs font-medium text-slate-500 sm:inline">tokens</span>
             </button>
 
             <div
               role="group"
               aria-label="Switch between rider and driver mode"
-              className="relative grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-xs font-semibold"
+              className="relative grid grid-cols-2 rounded-full bg-slate-900/[0.06] p-0.5 text-[13px] font-medium"
             >
               <span
                 aria-hidden
-                className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow-sm ring-1 ring-slate-200 transition-transform duration-300 ease-[cubic-bezier(0.3,0.9,0.3,1)] ${
+                className={`absolute inset-y-0.5 left-0.5 w-[calc(50%-0.125rem)] rounded-full bg-white shadow-thumb transition-transform duration-[450ms] ease-apple ${
                   shownMode === 'DRIVER' ? 'translate-x-full' : 'translate-x-0'
                 }`}
               />
@@ -123,8 +120,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
                   type="button"
                   aria-pressed={shownMode === m}
                   onClick={() => handleSelectMode(m)}
-                  className={`relative z-10 rounded-lg px-3 py-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600 ${
-                    shownMode === m ? 'text-cardinal-800' : 'text-slate-500 hover:text-slate-800'
+                  className={`relative z-10 rounded-full px-3.5 py-1 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600 ${
+                    shownMode === m ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
                   {m === 'RIDER' ? 'Rider' : 'Driver'}
@@ -137,18 +134,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
               onClick={logout}
               title="Sign out"
               aria-label="Sign out"
-              className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600"
+              className="rounded-full p-2 text-slate-500 transition duration-200 hover:bg-slate-900/[0.05] hover:text-slate-900 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
             </button>
           </div>
         </div>
       </header>
 
-      {/* Phone navigation sits under the thumb */}
+      {/* Phone navigation sits under the thumb, like a tab bar */}
       <nav
         aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        className="glass fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.06] pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         <div className="mx-auto grid max-w-md grid-cols-5">
           {navItems.map(({ id, short, Icon }) => {
@@ -159,11 +156,14 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
                 type="button"
                 onClick={() => onSelectTab(id)}
                 aria-current={active ? 'page' : undefined}
-                className={`relative flex flex-col items-center gap-0.5 pb-2 pt-2.5 text-[11px] font-medium transition-colors duration-150 before:absolute before:inset-x-5 before:top-0 before:h-0.5 before:rounded-full before:bg-cardinal-700 before:transition-transform before:duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cardinal-600 ${
-                  active ? 'text-cardinal-800 before:scale-x-100' : 'text-slate-500 before:scale-x-0'
+                className={`flex flex-col items-center gap-0.5 pb-1.5 pt-2 text-[10px] font-medium transition-colors duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cardinal-600 ${
+                  active ? 'text-cardinal-700' : 'text-slate-400'
                 }`}
               >
-                <Icon className={`h-5 w-5 transition-transform duration-200 ${active ? 'scale-110' : ''}`} />
+                <Icon
+                  className={`h-[22px] w-[22px] transition-transform duration-300 ${active ? 'scale-105' : ''}`}
+                  strokeWidth={active ? 2.1 : 1.7}
+                />
                 {short}
               </button>
             );

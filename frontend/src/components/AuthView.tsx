@@ -178,13 +178,13 @@ export const AuthView: React.FC = () => {
             className="h-12 w-12 rounded-2xl bg-white p-1 object-contain shadow-lift"
           />
           <div className="leading-none">
-            <div className="font-display text-xl font-bold tracking-tight">CardiRide</div>
+            <div className="font-display text-xl font-semibold tracking-tight">CardiRide</div>
             <div className="mt-1 text-xs text-red-200">Mapúa University Intramuros</div>
           </div>
         </div>
 
         <div className="relative max-w-md">
-          <h1 className="text-5xl font-bold leading-[1.05] tracking-tight xl:text-6xl">
+          <h1 className="text-5xl font-semibold leading-[1.05] tracking-tight xl:text-6xl">
             Mapúans moving Mapúans.
           </h1>
           <ul className="mt-10 space-y-6">
@@ -214,7 +214,7 @@ export const AuthView: React.FC = () => {
             className="h-10 w-10 rounded-xl bg-white p-1 object-contain"
           />
           <div className="leading-none">
-            <div className="font-display text-lg font-bold tracking-tight">CardiRide</div>
+            <div className="font-display text-lg font-semibold tracking-tight">CardiRide</div>
             <div className="mt-1 text-[11px] text-red-200">Mapúans Moving Mapúans</div>
           </div>
         </div>
@@ -251,7 +251,7 @@ export const AuthView: React.FC = () => {
           </div>
 
           <div className="mb-6">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
               {isRegister ? 'Create your Mapúa account' : 'Welcome back'}
             </h2>
             <p className="mt-1 text-sm text-slate-500">
@@ -423,7 +423,7 @@ export const AuthView: React.FC = () => {
 
               <Collapse open={isRegister && initialMode === 'DRIVER'}>
                 <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                     <Car className="h-4 w-4 text-cardinal-700" />
                     Your vehicle
                   </div>

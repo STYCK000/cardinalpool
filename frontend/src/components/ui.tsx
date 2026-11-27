@@ -4,20 +4,21 @@ import { AlertTriangle, CheckCircle2, Loader2, X } from 'lucide-react';
 /* ---------- Shared class recipes ---------- */
 
 const btnBase =
-  'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition duration-150 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100';
+  'inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-[-0.01em] transition duration-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100';
 
 const BTN_VARIANTS = {
-  primary: `${btnBase} bg-cardinal-700 text-white shadow-sm hover:bg-cardinal-800 focus-visible:ring-cardinal-600`,
-  secondary: `${btnBase} border border-slate-300 bg-white text-slate-800 hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-slate-400`,
-  success: `${btnBase} bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 focus-visible:ring-emerald-500`,
-  danger: `${btnBase} border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 focus-visible:ring-rose-400`,
-  gold: `${btnBase} bg-gold-400 text-cardinal-900 shadow-sm hover:bg-gold-500 focus-visible:ring-gold-500`,
-  ghost: `${btnBase} text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-slate-400`,
+  primary: `${btnBase} bg-cardinal-700 text-white hover:bg-cardinal-800 active:bg-cardinal-900 focus-visible:ring-cardinal-600`,
+  secondary: `${btnBase} bg-slate-900/[0.06] text-slate-900 hover:bg-slate-900/[0.10] active:bg-slate-900/[0.14] focus-visible:ring-slate-400`,
+  success: `${btnBase} bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500`,
+  danger: `${btnBase} bg-rose-600/[0.08] text-rose-700 hover:bg-rose-600/[0.14] focus-visible:ring-rose-400`,
+  gold: `${btnBase} bg-gold-400 text-cardinal-900 hover:bg-gold-500 focus-visible:ring-gold-500`,
+  light: `${btnBase} bg-white text-cardinal-800 hover:bg-white/90 focus-visible:ring-white focus-visible:ring-offset-cardinal-800`,
+  ghost: `${btnBase} text-slate-600 hover:bg-slate-900/[0.05] hover:text-slate-900 focus-visible:ring-slate-400`,
 } as const;
 
 const BTN_SIZES = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2.5 text-sm',
+  sm: 'px-3.5 py-1.5 text-[13px]',
+  md: 'px-5 py-2.5 text-[15px]',
 } as const;
 
 export function btn(
@@ -28,11 +29,11 @@ export function btn(
 }
 
 export const inputCls =
-  'w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition duration-150 focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/10 disabled:bg-slate-50';
+  'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 transition duration-200 hover:border-slate-400 focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/15 disabled:bg-slate-50 sm:py-2.5 sm:text-[15px]';
 
-export const labelCls = 'mb-1.5 block text-xs font-semibold text-slate-700';
+export const labelCls = 'mb-1.5 block text-xs font-medium text-slate-600';
 
-export const cardCls = 'rounded-2xl border border-slate-200/80 bg-white shadow-card';
+export const cardCls = 'rounded-[22px] bg-white shadow-card';
 
 /* ---------- Small building blocks ---------- */
 
@@ -41,18 +42,18 @@ export const Spinner: React.FC<{ className?: string }> = ({ className = 'h-4 w-4
 );
 
 export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`skeleton rounded-lg ${className}`} aria-hidden />
+  <div className={`skeleton rounded-xl ${className}`} aria-hidden />
 );
 
 type Tone = 'neutral' | 'cardinal' | 'green' | 'amber' | 'rose' | 'sky';
 
 const TONES: Record<Tone, string> = {
-  neutral: 'bg-slate-100 text-slate-700 ring-slate-200',
-  cardinal: 'bg-cardinal-50 text-cardinal-800 ring-cardinal-100',
-  green: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
-  amber: 'bg-amber-50 text-amber-900 ring-amber-200',
-  rose: 'bg-rose-50 text-rose-700 ring-rose-200',
-  sky: 'bg-sky-50 text-sky-800 ring-sky-200',
+  neutral: 'bg-slate-900/[0.06] text-slate-600',
+  cardinal: 'bg-cardinal-700/[0.09] text-cardinal-800',
+  green: 'bg-emerald-600/[0.10] text-emerald-800',
+  amber: 'bg-amber-500/[0.14] text-amber-900',
+  rose: 'bg-rose-600/[0.10] text-rose-700',
+  sky: 'bg-sky-600/[0.10] text-sky-800',
 };
 
 export const Pill: React.FC<{
@@ -62,7 +63,7 @@ export const Pill: React.FC<{
   children: React.ReactNode;
 }> = ({ tone = 'neutral', live = false, className = '', children }) => (
   <span
-    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${TONES[tone]} ${className}`}
+    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${TONES[tone]} ${className}`}
   >
     {live && <span className="live-dot h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />}
     {children}
@@ -97,12 +98,12 @@ export const EmptyState: React.FC<{
   children?: React.ReactNode;
   action?: React.ReactNode;
 }> = ({ icon, title, children, action }) => (
-  <div className={`${cardCls} flex flex-col items-center px-6 py-12 text-center`}>
-    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cardinal-50 text-cardinal-700">
+  <div className={`${cardCls} flex flex-col items-center px-6 py-14 text-center`}>
+    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
       {icon}
     </div>
-    <h3 className="mt-4 text-base font-bold text-slate-900">{title}</h3>
-    {children && <p className="mt-1 max-w-sm text-sm leading-relaxed text-slate-500">{children}</p>}
+    <h3 className="mt-4 text-[17px] font-semibold tracking-tight text-slate-900">{title}</h3>
+    {children && <p className="mt-1.5 max-w-sm text-[15px] leading-relaxed text-slate-500">{children}</p>}
     {action && <div className="mt-5">{action}</div>}
   </div>
 );
@@ -115,8 +116,8 @@ export const Toast: React.FC<{
   <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[60] flex justify-center px-4 md:bottom-8">
     <div
       role={type === 'error' ? 'alert' : 'status'}
-      className={`pointer-events-auto flex max-w-md items-start gap-3 rounded-2xl px-4 py-3 text-sm text-white shadow-lift animate-toast-in ${
-        type === 'success' ? 'bg-slate-900' : 'bg-rose-700'
+      className={`pointer-events-auto flex max-w-md items-start gap-3 rounded-[20px] px-4 py-3 text-sm text-white shadow-lift backdrop-blur-xl animate-toast-in ${
+        type === 'success' ? 'bg-slate-900/90' : 'bg-rose-700/95'
       }`}
     >
       {type === 'success' ? (

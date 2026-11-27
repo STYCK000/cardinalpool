@@ -6,26 +6,60 @@
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
   body {
     @apply bg-paper font-sans text-slate-900 antialiased;
     text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern', 'liga', 'calt';
+    overscroll-behavior-y: none;
   }
   h1,
   h2,
   h3 {
     @apply font-display;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
   ::selection {
-    background: rgb(185 28 28 / 0.18);
+    background: rgb(153 27 27 / 0.16);
   }
   :focus-visible {
-    outline: 2px solid #b91c1c;
+    outline: 2px solid rgb(185 28 28 / 0.9);
     outline-offset: 2px;
+    border-radius: 8px;
   }
   input[type='number'] {
     font-variant-numeric: tabular-nums;
   }
+  /* Quiet, thin scrollbars on desktop */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.18);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* Frosted surface used by the navbar and floating controls */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: saturate(180%) blur(24px);
 }
 
 /* Loading placeholders */
@@ -38,9 +72,9 @@
   }
 }
 .skeleton {
-  background: linear-gradient(90deg, #ebedf0 30%, #f6f7f9 50%, #ebedf0 70%);
+  background: linear-gradient(90deg, #ececf0 30%, #f6f6f8 50%, #ececf0 70%);
   background-size: 300% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 1.8s ease-in-out infinite;
 }
 
 /* Leaflet polish */
@@ -49,39 +83,57 @@
   height: 100%;
   z-index: 1;
   font-family: inherit;
-  background: #e8ebee;
+  background: #ececf0;
 }
 .leaflet-popup-content-wrapper {
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 2px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2);
+  background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.06), 0 12px 32px rgba(0, 0, 0, 0.16);
 }
 .leaflet-popup-content {
   margin: 12px 14px;
   font-size: 12px;
   line-height: 1.45;
-  color: #0f172a;
+  color: #1d1d1f;
 }
 .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.88);
   box-shadow: none;
 }
 .leaflet-bar {
   border: none !important;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.18) !important;
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 4px 14px rgba(0, 0, 0, 0.12) !important;
 }
 .leaflet-bar a {
-  width: 34px;
-  height: 34px;
-  line-height: 34px;
-  color: #334155;
-  transition: background-color 120ms ease;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  color: #515154;
+  background: transparent;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1) !important;
+  transition: background-color 160ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.leaflet-bar a:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1d1d1f;
+}
+.leaflet-bar a:last-child {
+  border-bottom: none !important;
 }
 .leaflet-control-attribution {
   font-size: 10px;
-  background: rgba(255, 255, 255, 0.75) !important;
-  border-top-left-radius: 8px;
+  background: rgba(255, 255, 255, 0.7) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-top-left-radius: 10px;
 }
 
 /* Map markers. The wrapper has zero size so the chip centers on its coordinate */
@@ -96,8 +148,8 @@
   top: 0;
   transform: translate(-50%, -50%);
   border: 2px solid #fff;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.28);
-  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16), 0 6px 16px rgba(0, 0, 0, 0.18);
+  font-weight: 600;
   white-space: nowrap;
 }
 .cr-chip {
@@ -109,7 +161,7 @@
   font-size: 11px;
 }
 .cr-chip--start {
-  background: #059669;
+  background: #34c759;
   color: #fff;
 }
 .cr-chip--campus {
@@ -117,11 +169,11 @@
   color: #fbbf24;
 }
 .cr-chip--driver {
-  background: #0f172a;
+  background: #1d1d1f;
   color: #fff;
 }
 .cr-chip--rider {
-  background: #047857;
+  background: #30b350;
   color: #fff;
 }
 .cr-stop {

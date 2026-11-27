@@ -86,14 +86,14 @@ export const TripCard: React.FC<TripCardProps> = ({
                 {trip.driver_role === 'FACULTY' ? 'Faculty driver' : 'Student driver'}
               </span>
             </div>
-            <h3 className="mt-2 text-lg font-bold leading-tight tracking-tight text-slate-900">
+            <h3 className="mt-2 text-lg font-semibold leading-tight tracking-tight text-slate-900">
               {trip.origin_name}
             </h3>
             <p className="mt-0.5 text-sm text-slate-500">to Mapúa Intramuros</p>
           </div>
 
           <div className="shrink-0 rounded-xl bg-gold-400/15 px-3 py-2 text-center ring-1 ring-gold-500/30">
-            <div className="flex items-center justify-center gap-1 text-lg font-bold tabular-nums text-amber-900">
+            <div className="flex items-center justify-center gap-1 text-lg font-semibold tabular-nums text-amber-900">
               <Coins className="h-4 w-4 text-gold-600" />
               {trip.token_cost}
             </div>
@@ -152,7 +152,7 @@ export const TripCard: React.FC<TripCardProps> = ({
         {isOwnTrip && (
           <div className="space-y-3 rounded-xl border border-cardinal-100 bg-cardinal-50/50 p-3.5">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-sm font-bold text-cardinal-900">
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-cardinal-900">
                 <UserCheck className="h-4 w-4 text-cardinal-700" />
                 Riders on this trip ({bookedRiders.length})
               </div>
@@ -288,7 +288,7 @@ export const TripCard: React.FC<TripCardProps> = ({
                     />
                   )}
                   <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-colors duration-150 ${
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-colors duration-150 ${
                       selected ? 'bg-cardinal-700 text-white' : 'bg-gold-400 text-slate-900'
                     }`}
                   >
