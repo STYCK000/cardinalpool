@@ -41,7 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
     id: ActiveTab;
     label: string;
     short: string;
-    Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+    Icon: React.ComponentType<{ className?: string; strokeWidth?: string | number }>;
   }> = [
     { id: 'browse', label: 'Find rides', short: 'Rides', Icon: Compass },
     {
