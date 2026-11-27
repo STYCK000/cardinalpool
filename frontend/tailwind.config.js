@@ -1,30 +1,25 @@
 /** @type {import('tailwindcss').Config} */
+const v = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        // Apple-style grouped background
-        paper: '#F5F5F7',
-        // Neutral ramp tuned to Apple's label and separator greys.
-        // Every existing slate-* class in the app picks this up automatically.
-        slate: {
-          50: '#FAFAFC',
-          100: '#F5F5F7',
-          200: '#E8E8ED',
-          300: '#D2D2D7',
-          400: '#A1A1A6',
-          500: '#86868B',
-          600: '#6E6E73',
-          700: '#515154',
-          800: '#333336',
-          900: '#1D1D1F',
-          950: '#0F0F10',
-        },
+        // Everything below reads CSS variables (see index.css), so light and
+        // dark mode swap values without touching a single component class.
+        paper: v('paper'),
+        surface: v('surface'),
+        thumb: v('thumb'),
+        accent: v('accent'),
+        slate: Object.fromEntries(
+          [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map((n) => [n, v(`slate-${n}`)])
+        ),
         cardinal: {
-          50: '#FEF3F3',
-          100: '#FDE4E4',
-          200: '#FBCACA',
+          50: v('cardinal-50'),
+          100: v('cardinal-100'),
+          200: v('cardinal-200'),
           500: '#DC2626',
           600: '#B91C1C',
           700: '#991B1B',
@@ -36,6 +31,18 @@ export default {
           500: '#F59E0B',
           600: '#D97706',
         },
+        // Soft status tints and their readable text shades
+        amber: { 50: v('amber-50'), 200: v('amber-200'), 700: v('amber-700'), 800: v('amber-800'), 900: v('amber-900') },
+        rose: { 50: v('rose-50'), 200: v('rose-200'), 700: v('rose-700'), 800: v('rose-800') },
+        emerald: {
+          50: v('emerald-50'),
+          100: v('emerald-100'),
+          200: v('emerald-200'),
+          700: v('emerald-700'),
+          800: v('emerald-800'),
+          900: v('emerald-900'),
+        },
+        red: { 50: v('red-50'), 200: v('red-200'), 600: v('red-600'), 700: v('red-700') },
       },
       fontFamily: {
         sans: [
@@ -61,10 +68,10 @@ export default {
         '4xl': '28px',
       },
       boxShadow: {
-        // Two soft layers, like a card resting a few points above the page
-        card: '0 0 0 0.5px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03), 0 6px 20px rgba(0, 0, 0, 0.04)',
-        lift: '0 0 0 0.5px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.12), 0 24px 64px rgba(0, 0, 0, 0.14)',
-        thumb: '0 0 0 0.5px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.14), 0 3px 8px rgba(0, 0, 0, 0.06)',
+        // Defined per theme in index.css
+        card: 'var(--shadow-card)',
+        lift: 'var(--shadow-lift)',
+        thumb: 'var(--shadow-thumb)',
       },
       // The iOS sheet curve. Quick start, long gentle settle.
       // Setting it as the default means every `transition` in the app uses it.

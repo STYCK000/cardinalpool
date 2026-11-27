@@ -2,6 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme tokens. Values are space-separated RGB channels so Tailwind can add opacity. */
+@layer base {
+  :root {
+    color-scheme: light;
+    --paper: 245 245 247;
+    --surface: 255 255 255;
+    --thumb: 255 255 255;
+    --accent: 153 27 27;
+
+    --slate-50: 250 250 252;
+    --slate-100: 245 245 247;
+    --slate-200: 232 232 237;
+    --slate-300: 210 210 215;
+    --slate-400: 161 161 166;
+    --slate-500: 134 134 139;
+    --slate-600: 110 110 115;
+    --slate-700: 81 81 84;
+    --slate-800: 51 51 54;
+    --slate-900: 29 29 31;
+    --slate-950: 15 15 16;
+
+    --cardinal-50: 254 243 243;
+    --cardinal-100: 253 228 228;
+    --cardinal-200: 251 202 202;
+
+    --amber-50: 255 251 235;
+    --amber-200: 253 230 138;
+    --amber-700: 180 83 9;
+    --amber-800: 146 64 14;
+    --amber-900: 120 53 15;
+    --rose-50: 255 241 242;
+    --rose-200: 254 205 211;
+    --rose-700: 190 18 60;
+    --rose-800: 159 18 57;
+    --emerald-50: 236 253 245;
+    --emerald-100: 209 250 229;
+    --emerald-200: 167 243 208;
+    --emerald-700: 4 120 87;
+    --emerald-800: 6 95 70;
+    --emerald-900: 6 78 59;
+    --red-50: 254 242 242;
+    --red-200: 254 202 202;
+    --red-600: 220 38 38;
+    --red-700: 185 28 28;
+
+    --shadow-card: 0 0 0 0.5px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03), 0 6px 20px rgba(0, 0, 0, 0.04);
+    --shadow-lift: 0 0 0 0.5px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.12), 0 24px 64px rgba(0, 0, 0, 0.14);
+    --shadow-thumb: 0 0 0 0.5px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.14), 0 3px 8px rgba(0, 0, 0, 0.06);
+
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --map-bg: #ececf0;
+  }
+
+  /* Dark: true black page, elevated charcoal surfaces, inverted neutral ramp */
+  .dark {
+    color-scheme: dark;
+    --paper: 0 0 0;
+    --surface: 28 28 30;
+    --thumb: 99 99 102;
+    --accent: 252 165 165;
+
+    --slate-50: 35 35 38;
+    --slate-100: 44 44 46;
+    --slate-200: 58 58 60;
+    --slate-300: 72 72 74;
+    --slate-400: 110 110 115;
+    --slate-500: 152 152 157;
+    --slate-600: 174 174 178;
+    --slate-700: 199 199 204;
+    --slate-800: 229 229 234;
+    --slate-900: 245 245 247;
+    --slate-950: 255 255 255;
+
+    --cardinal-50: 48 20 20;
+    --cardinal-100: 72 24 24;
+    --cardinal-200: 110 34 34;
+
+    --amber-50: 44 34 10;
+    --amber-200: 96 72 16;
+    --amber-700: 252 211 77;
+    --amber-800: 252 211 77;
+    --amber-900: 254 240 138;
+    --rose-50: 52 18 24;
+    --rose-200: 104 32 44;
+    --rose-700: 253 164 175;
+    --rose-800: 254 205 211;
+    --emerald-50: 10 40 30;
+    --emerald-100: 12 55 40;
+    --emerald-200: 20 83 60;
+    --emerald-700: 110 231 183;
+    --emerald-800: 167 243 208;
+    --emerald-900: 209 250 229;
+    --red-50: 52 18 18;
+    --red-200: 104 32 32;
+    --red-600: 248 113 113;
+    --red-700: 252 165 165;
+
+    --shadow-card: 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-lift: 0 0 0 0.5px rgba(255, 255, 255, 0.12), 0 8px 24px rgba(0, 0, 0, 0.55), 0 24px 64px rgba(0, 0, 0, 0.6);
+    --shadow-thumb: 0 1px 3px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.25);
+
+    --glass-bg: rgba(28, 28, 30, 0.72);
+    --map-bg: #1c1c1e;
+  }
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -27,6 +133,9 @@
   ::selection {
     background: rgb(153 27 27 / 0.16);
   }
+  .dark ::selection {
+    background: rgb(252 165 165 / 0.28);
+  }
   :focus-visible {
     outline: 2px solid rgb(185 28 28 / 0.9);
     outline-offset: 2px;
@@ -38,14 +147,14 @@
   /* Quiet, thin scrollbars on desktop */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    scrollbar-color: rgb(var(--slate-300)) transparent;
   }
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.18);
+    background: rgb(var(--slate-300));
     border: 3px solid transparent;
     background-clip: content-box;
     border-radius: 999px;
@@ -57,7 +166,7 @@
 
 /* Frosted surface used by the navbar and floating controls */
 .glass {
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--glass-bg);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
   backdrop-filter: saturate(180%) blur(24px);
 }
@@ -72,7 +181,7 @@
   }
 }
 .skeleton {
-  background: linear-gradient(90deg, #ececf0 30%, #f6f6f8 50%, #ececf0 70%);
+  background: linear-gradient(90deg, rgb(var(--slate-200)) 30%, rgb(var(--slate-100)) 50%, rgb(var(--slate-200)) 70%);
   background-size: 300% 100%;
   animation: shimmer 1.8s ease-in-out infinite;
 }
@@ -83,7 +192,7 @@
   height: 100%;
   z-index: 1;
   font-family: inherit;
-  background: #ececf0;
+  background: var(--map-bg);
 }
 .leaflet-popup-content-wrapper {
   border-radius: 16px;
@@ -212,6 +321,58 @@
 }
 .live-dot {
   animation: live-dot 1.8s ease-out infinite;
+}
+
+/* Dark map. The tiles are inverted and softened, the controls follow the theme. */
+.dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.75);
+}
+.dark .leaflet-popup-content-wrapper,
+.dark .leaflet-popup-tip {
+  background: rgba(44, 44, 46, 0.92);
+}
+.dark .leaflet-popup-content {
+  color: #f5f5f7;
+}
+.dark .leaflet-popup-content-wrapper {
+  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+.dark .leaflet-bar {
+  background: rgba(44, 44, 46, 0.88);
+  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.1), 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+}
+.dark .leaflet-bar a {
+  color: #d1d1d6;
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+}
+.dark .leaflet-bar a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.dark .leaflet-control-attribution {
+  background: rgba(28, 28, 30, 0.7) !important;
+  color: #98989d;
+}
+.dark .leaflet-control-attribution a {
+  color: #aeaeb2;
+}
+
+/* Fade colors when the theme changes (added briefly by ThemeProvider) */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 320ms ease, border-color 320ms ease, color 320ms ease,
+    fill 320ms ease, stroke 320ms ease, box-shadow 320ms ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

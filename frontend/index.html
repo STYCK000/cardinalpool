@@ -3,7 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#F5F5F7" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" id="theme-color" content="#F5F5F7" />
+    <script>
+      // Set the theme before first paint so dark mode never flashes white
+      (function () {
+        try {
+          var pref = localStorage.getItem('cardiride-theme');
+          if (pref !== 'light' && pref !== 'dark') pref = 'system';
+          var dark = pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var root = document.documentElement;
+          root.classList.toggle('dark', dark);
+          root.style.colorScheme = dark ? 'dark' : 'light';
+          var meta = document.getElementById('theme-color');
+          if (meta) meta.setAttribute('content', dark ? '#000000' : '#F5F5F7');
+        } catch (e) {}
+      })();
+    </script>
     <title>CardiRide, Mapúans Moving Mapúans</title>
     <link rel="icon" type="image/png" href="/cardiride-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -136,7 +136,7 @@ router.get('/', requireAuth, async (req, res, next) => {
       params.push(statusFilter);
       conditions.push(`t.status = $${params.length}`);
     } else if (mineOnly) {
-      conditions.push(`t.status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED')`);
+      conditions.push(`t.status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')`);
     } else {
       conditions.push(`t.status IN ('SCHEDULED', 'IN_PROGRESS')`);
     }

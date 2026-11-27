@@ -9,7 +9,7 @@ const btnBase =
 const BTN_VARIANTS = {
   primary: `${btnBase} bg-cardinal-700 text-white hover:bg-cardinal-800 active:bg-cardinal-900 focus-visible:ring-cardinal-600`,
   secondary: `${btnBase} bg-slate-900/[0.06] text-slate-900 hover:bg-slate-900/[0.10] active:bg-slate-900/[0.14] focus-visible:ring-slate-400`,
-  success: `${btnBase} bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500`,
+  success: `${btnBase} bg-emerald-600 text-white hover:bg-emerald-500 focus-visible:ring-emerald-500`,
   danger: `${btnBase} bg-rose-600/[0.08] text-rose-700 hover:bg-rose-600/[0.14] focus-visible:ring-rose-400`,
   gold: `${btnBase} bg-gold-400 text-cardinal-900 hover:bg-gold-500 focus-visible:ring-gold-500`,
   light: `${btnBase} bg-white text-cardinal-800 hover:bg-white/90 focus-visible:ring-white focus-visible:ring-offset-cardinal-800`,
@@ -29,11 +29,11 @@ export function btn(
 }
 
 export const inputCls =
-  'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 transition duration-200 hover:border-slate-400 focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/15 disabled:bg-slate-50 sm:py-2.5 sm:text-[15px]';
+  'w-full rounded-xl border border-slate-300 bg-surface dark:bg-slate-100 px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 transition duration-200 hover:border-slate-400 focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/15 disabled:bg-slate-50 sm:py-2.5 sm:text-[15px]';
 
 export const labelCls = 'mb-1.5 block text-xs font-medium text-slate-600';
 
-export const cardCls = 'rounded-[22px] bg-white shadow-card';
+export const cardCls = 'rounded-[22px] bg-surface shadow-card';
 
 /* ---------- Small building blocks ---------- */
 
@@ -49,11 +49,11 @@ type Tone = 'neutral' | 'cardinal' | 'green' | 'amber' | 'rose' | 'sky';
 
 const TONES: Record<Tone, string> = {
   neutral: 'bg-slate-900/[0.06] text-slate-600',
-  cardinal: 'bg-cardinal-700/[0.09] text-cardinal-800',
+  cardinal: 'bg-cardinal-700/[0.09] text-accent',
   green: 'bg-emerald-600/[0.10] text-emerald-800',
   amber: 'bg-amber-500/[0.14] text-amber-900',
   rose: 'bg-rose-600/[0.10] text-rose-700',
-  sky: 'bg-sky-600/[0.10] text-sky-800',
+  sky: 'bg-sky-600/[0.10] text-sky-800 dark:text-sky-300',
 };
 
 export const Pill: React.FC<{
@@ -117,7 +117,7 @@ export const Toast: React.FC<{
     <div
       role={type === 'error' ? 'alert' : 'status'}
       className={`pointer-events-auto flex max-w-md items-start gap-3 rounded-[20px] px-4 py-3 text-sm text-white shadow-lift backdrop-blur-xl animate-toast-in ${
-        type === 'success' ? 'bg-slate-900/90' : 'bg-rose-700/95'
+        type === 'success' ? 'bg-[#1d1d1f]/90 dark:bg-slate-200/95' : 'bg-rose-600/95'
       }`}
     >
       {type === 'success' ? (

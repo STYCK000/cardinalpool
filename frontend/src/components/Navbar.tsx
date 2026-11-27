@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Car, Coins, Compass, LogOut, MapPin, User, Wallet } from 'lucide-react';
+import { Car, Coins, Compass, LogOut, MapPin, Moon, Sun, User, Wallet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export type ActiveTab = 'browse' | 'my-trips' | 'map' | 'wallet' | 'profile';
 
@@ -14,6 +15,7 @@ type UserMode = 'RIDER' | 'DRIVER';
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeError }) => {
   const { user, logout, switchMode } = useAuth();
+  const { resolved, setPreference } = useTheme();
   // Move the switch right away and roll back if the server says no
   const [pendingMode, setPendingMode] = useState<UserMode | null>(null);
   if (!user) return null;
@@ -55,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
 
   return (
     <>
-      <header className="glass sticky top-0 z-40 border-b border-black/[0.06]">
+      <header className="glass sticky top-0 z-40 border-b border-slate-900/[0.08]">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
           <button
             type="button"
@@ -110,7 +112,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
             >
               <span
                 aria-hidden
-                className={`absolute inset-y-0.5 left-0.5 w-[calc(50%-0.125rem)] rounded-full bg-white shadow-thumb transition-transform duration-[450ms] ease-apple ${
+                className={`absolute inset-y-0.5 left-0.5 w-[calc(50%-0.125rem)] rounded-full bg-thumb shadow-thumb transition-transform duration-[450ms] ease-apple ${
                   shownMode === 'DRIVER' ? 'translate-x-full' : 'translate-x-0'
                 }`}
               />
@@ -131,6 +133,20 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
 
             <button
               type="button"
+              onClick={() => setPreference(resolved === 'dark' ? 'light' : 'dark')}
+              title={resolved === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={resolved === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="hidden rounded-full p-2 text-slate-500 transition duration-200 hover:bg-slate-900/[0.05] hover:text-slate-900 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600 sm:inline-flex"
+            >
+              {resolved === 'dark' ? (
+                <Sun className="h-[18px] w-[18px]" strokeWidth={1.8} />
+              ) : (
+                <Moon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+              )}
+            </button>
+
+            <button
+              type="button"
               onClick={logout}
               title="Sign out"
               aria-label="Sign out"
@@ -145,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
       {/* Phone navigation sits under the thumb, like a tab bar */}
       <nav
         aria-label="Primary"
-        className="glass fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.06] pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="glass fixed inset-x-0 bottom-0 z-40 border-t border-slate-900/[0.08] pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         <div className="mx-auto grid max-w-md grid-cols-5">
           {navItems.map(({ id, short, Icon }) => {
@@ -157,7 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onModeEr
                 onClick={() => onSelectTab(id)}
                 aria-current={active ? 'page' : undefined}
                 className={`flex flex-col items-center gap-0.5 pb-1.5 pt-2 text-[10px] font-medium transition-colors duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cardinal-600 ${
-                  active ? 'text-cardinal-700' : 'text-slate-400'
+                  active ? 'text-accent' : 'text-slate-400'
                 }`}
               >
                 <Icon

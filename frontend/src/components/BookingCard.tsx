@@ -23,6 +23,12 @@ export const BookingCard: React.FC<BookingCardProps> = ({ booking: b, onTrack, o
   };
 
   const departure = b.departure_time ? new Date(b.departure_time) : null;
+  const isEnded =
+    b.status === 'COMPLETED' ||
+    b.status === 'CANCELLED' ||
+    b.status === 'REFUNDED' ||
+    b.trip_status === 'COMPLETED' ||
+    b.trip_status === 'CANCELLED';
 
   return (
     <div className={`${cardCls} flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between`}>
@@ -62,16 +68,18 @@ export const BookingCard: React.FC<BookingCardProps> = ({ booking: b, onTrack, o
           </span>
           <span className="inline-flex items-center gap-1 font-semibold text-amber-900">
             <Coins className="h-3.5 w-3.5 text-gold-600" />
-            {b.tokens_escrowed} tokens held
+            {b.tokens_escrowed} {b.status === 'COMPLETED' ? 'tokens paid' : b.status === 'REFUNDED' ? 'tokens refunded' : 'tokens held'}
           </span>
         </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <button type="button" onClick={() => onTrack(b.trip_id)} className={btn('secondary', 'sm')}>
-          <MapPin className="h-3.5 w-3.5 text-cardinal-700" />
-          Track live
-        </button>
+        {!isEnded && (
+          <button type="button" onClick={() => onTrack(b.trip_id)} className={btn('secondary', 'sm')}>
+            <MapPin className="h-3.5 w-3.5 text-accent" />
+            Track live
+          </button>
+        )}
         {b.status === 'COMPLETED' && !b.rider_has_rated && onRateDriver && (
           <button type="button" onClick={() => onRateDriver(b)} className={btn('primary', 'sm')}>
             <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />

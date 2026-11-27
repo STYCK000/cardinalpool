@@ -113,9 +113,9 @@ export const TripChatPanel: React.FC<TripChatPanelProps> = ({ tripId, isDriver }
 
   return (
     <section className={`${cardCls} overflow-hidden`}>
-      <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-3.5">
+      <div className="flex items-center justify-between border-b border-slate-900/[0.08] px-5 py-3.5">
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-cardinal-700" />
+          <MessageSquare className="h-4 w-4 text-accent" />
           <h3 className="text-sm font-semibold text-slate-900">Trip Chat (Driver &amp; Riders)</h3>
         </div>
         <span className="rounded-full bg-emerald-600/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
@@ -136,7 +136,7 @@ export const TripChatPanel: React.FC<TripChatPanelProps> = ({ tripId, isDriver }
       ) : (
         <div className="flex flex-col">
           {/* Message Feed */}
-          <div className="max-h-80 min-h-[180px] space-y-3 overflow-y-auto bg-white p-5">
+          <div className="max-h-80 min-h-[180px] space-y-3 overflow-y-auto bg-surface p-5">
             {messages.length === 0 ? (
               <div className="py-8 text-center text-xs text-slate-400">
                 No messages yet. Coordinate your exact pick-up spot or ETA here!
@@ -151,7 +151,7 @@ export const TripChatPanel: React.FC<TripChatPanelProps> = ({ tripId, isDriver }
                       <span
                         className={`rounded px-1.5 py-0.2 text-[10px] font-semibold ${
                           m.sender_role === 'DRIVER'
-                            ? 'bg-cardinal-100 text-cardinal-800'
+                            ? 'bg-cardinal-100 text-accent'
                             : 'bg-slate-200 text-slate-700'
                         }`}
                       >
@@ -181,7 +181,7 @@ export const TripChatPanel: React.FC<TripChatPanelProps> = ({ tripId, isDriver }
           </div>
 
           {/* Quick-reply chips */}
-          <div className="flex flex-wrap gap-1.5 border-t border-slate-100 bg-white px-4 pt-3">
+          <div className="flex flex-wrap gap-1.5 border-t border-slate-100 bg-surface px-4 pt-3">
             {quickReplies.map((chip) => (
               <button
                 key={chip}
@@ -200,7 +200,7 @@ export const TripChatPanel: React.FC<TripChatPanelProps> = ({ tripId, isDriver }
           )}
 
           {/* Input Bar */}
-          <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white p-4 pt-2.5">
+          <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-surface p-4 pt-2.5">
             <input
               type="text"
               maxLength={500}
@@ -211,7 +211,7 @@ export const TripChatPanel: React.FC<TripChatPanelProps> = ({ tripId, isDriver }
                   ? 'Message your riders (e.g. "Passing Welcome Rotonda now")...'
                   : 'Message your driver (e.g. "Wearing a red hoodie near the gate")...'
               }
-              className="flex-1 rounded-full border border-slate-300 bg-white px-4 py-2 text-base placeholder:text-slate-400 transition focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/15 sm:text-[14px]"
+              className="flex-1 rounded-full border border-slate-300 bg-surface px-4 py-2 text-base placeholder:text-slate-400 transition focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/15 sm:text-[14px]"
             />
             <button
               type="submit"

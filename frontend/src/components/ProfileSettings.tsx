@@ -1,12 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, Car, CheckCircle2, Star, UserCheck } from 'lucide-react';
+import { AlertTriangle, Car, CheckCircle2, Monitor, Moon, Star, Sun, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { ThemePreference, useTheme } from '../context/ThemeContext';
 import { apiRequest } from '../services/api';
 import { RatingReview, RatingSummary } from '../types';
 import { Spinner, btn, cardCls, inputCls, labelCls } from './ui';
 
+const THEME_OPTIONS: Array<{
+  id: ThemePreference;
+  label: string;
+  Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+}> = [
+  { id: 'system', label: 'System', Icon: Monitor },
+  { id: 'light', label: 'Light', Icon: Sun },
+  { id: 'dark', label: 'Dark', Icon: Moon },
+];
+
 export const ProfileSettings: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const { preference, setPreference } = useTheme();
+  const themeIndex = THEME_OPTIONS.findIndex((o) => o.id === preference);
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [department, setDepartment] = useState(user?.department || '');
   const [vehicleMake, setVehicleMake] = useState(user?.vehicle_make || '');
@@ -146,7 +159,7 @@ export const ProfileSettings: React.FC = () => {
         <section className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
           <div>
             <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
-              <Car className="h-4 w-4 text-cardinal-700" />
+              <Car className="h-4 w-4 text-accent" />
               Vehicle
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-slate-500">
@@ -210,6 +223,42 @@ export const ProfileSettings: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {/* Appearance */}
+      <section className={`${cardCls} space-y-4 p-5 sm:p-6`}>
+        <div>
+          <h3 className="text-base font-semibold text-slate-900">Appearance</h3>
+          <p className="mt-0.5 text-[13px] text-slate-500">
+            System matches your device and switches between light and dark automatically.
+          </p>
+        </div>
+        <div
+          role="radiogroup"
+          aria-label="Appearance"
+          className="relative grid grid-cols-3 rounded-full bg-slate-900/[0.06] p-0.5 text-[13px] font-medium sm:max-w-sm"
+        >
+          <span
+            aria-hidden
+            className="absolute inset-y-0.5 left-0.5 w-[calc((100%-0.25rem)/3)] rounded-full bg-thumb shadow-thumb transition-transform duration-[450ms] ease-apple"
+            style={{ transform: `translateX(${Math.max(themeIndex, 0) * 100}%)` }}
+          />
+          {THEME_OPTIONS.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={preference === id}
+              onClick={() => setPreference(id)}
+              className={`relative z-10 inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600 ${
+                preference === id ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Icon className="h-4 w-4" strokeWidth={1.9} />
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
 
       {/* Two-Way CardiRide Rating Summary */}
       <section className={`${cardCls} p-5 space-y-4`}>

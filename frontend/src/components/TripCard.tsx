@@ -71,6 +71,7 @@ export const TripCard: React.FC<TripCardProps> = ({
   });
 
   const bookedRiders = trip.bookings || [];
+  const isEnded = trip.status === 'COMPLETED' || trip.status === 'CANCELLED';
   const totalEscrowedTokens = bookedRiders.reduce((sum, b) => sum + (b.tokens_escrowed || 0), 0);
   const seatsTaken = trip.total_seats - trip.available_seats;
 
@@ -104,7 +105,7 @@ export const TripCard: React.FC<TripCardProps> = ({
         {/* When, seats, who */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-xl bg-slate-50 p-3.5 text-sm">
           <div className="flex items-start gap-2.5">
-            <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-cardinal-700" />
+            <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
             <div>
               <div className="font-semibold leading-tight text-slate-900">{dayLabel}</div>
               <div className="text-xs text-slate-500">{timeLabel}</div>
@@ -117,7 +118,7 @@ export const TripCard: React.FC<TripCardProps> = ({
                 <span
                   key={i}
                   className={`h-2.5 w-2.5 rounded-full ${
-                    i < seatsTaken ? 'bg-cardinal-700' : 'border-2 border-slate-300 bg-white'
+                    i < seatsTaken ? 'bg-cardinal-700' : 'border-2 border-slate-300 bg-surface'
                   }`}
                 />
               ))}
@@ -141,7 +142,7 @@ export const TripCard: React.FC<TripCardProps> = ({
               )}
               <span className="mx-1.5 text-slate-300">|</span>
               {trip.vehicle_color} {trip.vehicle_make} {trip.vehicle_model}
-              <span className="ml-1.5 rounded bg-white px-1.5 py-0.5 font-mono text-[11px] text-slate-700 ring-1 ring-slate-200">
+              <span className="ml-1.5 rounded bg-surface px-1.5 py-0.5 font-mono text-[11px] text-slate-700 ring-1 ring-slate-200">
                 {trip.vehicle_plate_number}
               </span>
             </div>
@@ -152,8 +153,8 @@ export const TripCard: React.FC<TripCardProps> = ({
         {isOwnTrip && (
           <div className="space-y-3 rounded-xl border border-cardinal-100 bg-cardinal-50/50 p-3.5">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-cardinal-900">
-                <UserCheck className="h-4 w-4 text-cardinal-700" />
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-accent">
+                <UserCheck className="h-4 w-4 text-accent" />
                 Riders on this trip ({bookedRiders.length})
               </div>
               {totalEscrowedTokens > 0 && (
@@ -170,7 +171,7 @@ export const TripCard: React.FC<TripCardProps> = ({
                 {bookedRiders.map((b) => (
                   <li
                     key={b.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-surface p-3"
                   >
                     <div className="min-w-0 space-y-1">
                       <div className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-slate-900">
@@ -192,7 +193,7 @@ export const TripCard: React.FC<TripCardProps> = ({
                           {b.rider_university_id ? `, ID ${b.rider_university_id}` : ''}
                         </div>
                       )}
-                      <div className="flex items-start gap-1.5 pt-0.5 text-xs font-semibold text-cardinal-800">
+                      <div className="flex items-start gap-1.5 pt-0.5 text-xs font-semibold text-accent">
                         <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-600" />
                         <span>
                           {b.pickup_sequence ? `Stop ${b.pickup_sequence} at ` : ''}
@@ -253,7 +254,7 @@ export const TripCard: React.FC<TripCardProps> = ({
 
             <div className="relative flex items-center gap-3 py-1.5">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                <span className="h-3 w-3 rounded-full border-[3px] border-emerald-600 bg-white" />
+                <span className="h-3 w-3 rounded-full border-[3px] border-emerald-600 bg-surface" />
               </span>
               <div className="min-w-0">
                 <div className="truncate text-sm font-semibold text-slate-800">{trip.origin_name}</div>
@@ -289,7 +290,7 @@ export const TripCard: React.FC<TripCardProps> = ({
                   )}
                   <span
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-colors duration-150 ${
-                      selected ? 'bg-cardinal-700 text-white' : 'bg-gold-400 text-slate-900'
+                      selected ? 'bg-cardinal-700 text-white' : 'bg-gold-400 text-[#1d1d1f]'
                     }`}
                   >
                     {idx + 1}
@@ -335,10 +336,14 @@ export const TripCard: React.FC<TripCardProps> = ({
 
       {/* Actions */}
       <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-slate-100 px-5 py-4">
-        <button type="button" onClick={() => onOpenMap(trip.id)} className={btn('secondary', 'sm')}>
-          <MapPin className="h-3.5 w-3.5 text-cardinal-700" />
+        {!isEnded ? (
+          <button type="button" onClick={() => onOpenMap(trip.id)} className={btn('secondary', 'sm')}>
+          <MapPin className="h-3.5 w-3.5 text-accent" />
           Live route and ETA
         </button>
+        ) : (
+          <span className="text-xs font-medium text-slate-400">{trip.status === 'COMPLETED' ? 'Trip completed' : 'Trip cancelled'}</span>
+        )}
 
         {!isOwnTrip && (
           <button

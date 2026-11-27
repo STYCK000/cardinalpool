@@ -144,7 +144,7 @@ export const WalletDashboard: React.FC = () => {
           >
             <span
               aria-hidden
-              className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.3,0.9,0.3,1)]"
+              className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-lg bg-thumb shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.3,0.9,0.3,1)]"
               style={{ transform: `translateX(${filterIndex * 100}%)` }}
             />
             {FILTERS.map((f) => (

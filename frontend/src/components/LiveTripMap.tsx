@@ -44,6 +44,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
   const [pickupEtas, setPickupEtas] = useState<Record<string, LiveEtaSummary>>({});
   const [sharingGps, setSharingGps] = useState(false);
   const [simulating, setSimulating] = useState(false);
+  const [simCarPos, setSimCarPos] = useState<[number, number] | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const simTimerRef = useRef<number | null>(null);
 
@@ -165,6 +166,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
       if (simTimerRef.current !== null) window.clearInterval(simTimerRef.current);
       simTimerRef.current = null;
       setSimulating(false);
+      setSimCarPos(null);
       return;
     }
 
@@ -179,13 +181,16 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
         return;
       }
       const [lat, lng] = routeLatLngs[idx];
-      socket.emit('location:update', {
-        tripId,
-        role: isDriver ? 'DRIVER' : 'RIDER',
-        lat,
-        lng,
-        speedKmh: 28,
-      });
+      setSimCarPos([lat, lng]);
+      if (isDriver) {
+        socket.emit('location:update', {
+          tripId,
+          role: 'DRIVER',
+          lat,
+          lng,
+          speedKmh: 28,
+        });
+      }
       if (idx === routeLatLngs.length - 1) {
         idx = routeLatLngs.length;
       } else {
@@ -228,7 +233,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className={`${cardCls} p-5`}>
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <Clock className="h-4 w-4 text-cardinal-700" />
+            <Clock className="h-4 w-4 text-accent" />
             {myBooking ? `ETA to your stop, ${myBooking.pickup_label}` : 'ETA to next pick-up stop'}
           </div>
           <div className="mt-3 flex items-baseline gap-1.5">
@@ -330,14 +335,14 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
                       <div className="border-t border-slate-200 pt-1">
                         <div className="font-semibold text-slate-800">Riders here</div>
                         {stopRiders.map((r) => (
-                          <div key={r.id} className="text-cardinal-700">
+                          <div key={r.id} className="text-accent">
                             {r.rider_name} ({r.status === 'BOARDED' ? 'picked up' : 'waiting'})
                           </div>
                         ))}
                       </div>
                     )}
                     {pickupEtas[stop.id]?.driverToPickupMinutes != null && (
-                      <p className="font-semibold text-cardinal-700">
+                      <p className="font-semibold text-accent">
                         Driver ETA {pickupEtas[stop.id].driverToPickupMinutes} min
                       </p>
                     )}
@@ -355,17 +360,28 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
             </Popup>
           </Marker>
 
-          {Object.values(liveLocations).map((loc) =>
-            loc.role === 'DRIVER' ? (
+          {/* Smoothly gliding driver car: live GPS -> simulated demo drive -> parked at Start */}
+          {(() => {
+            const liveDriver = Object.values(liveLocations).find((l) => l.role === 'DRIVER');
+            const carPos: [number, number] = simCarPos
+              ? simCarPos
+              : liveDriver
+                ? [liveDriver.lat, liveDriver.lng]
+                : [trip.origin_lat, trip.origin_lng];
+            return (
               <SmoothCarMarker
-                key={loc.user_id}
-                position={[loc.lat, loc.lng]}
-                heading={loc.heading}
-                driverName={loc.full_name}
-                updatedAt={loc.updated_at}
+                position={carPos}
+                heading={simCarPos ? null : liveDriver?.heading ?? null}
+                driverName={trip.driver_name}
+                updatedAt={liveDriver?.updated_at ?? new Date().toISOString()}
                 durationMs={950}
               />
-            ) : (
+            );
+          })()}
+
+          {Object.values(liveLocations)
+            .filter((loc) => loc.role !== 'DRIVER')
+            .map((loc) => (
               <Marker key={loc.user_id} position={[loc.lat, loc.lng]} icon={riderIcon}>
                 <Popup>
                   <div className="text-xs">
@@ -375,8 +391,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
                   </div>
                 </Popup>
               </Marker>
-            )
-          )}
+            ))}
         </MapContainer>
       </div>
 
@@ -388,7 +403,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
-              <UserCheck className="h-5 w-5 text-cardinal-700" />
+              <UserCheck className="h-5 w-5 text-accent" />
               {isDriver ? 'Your pick-up list' : 'Passengers and stops'} ({passengers.length})
             </h3>
             <p className="mt-0.5 text-xs text-slate-500">Ordered by pick-up stop along the route to Intramuros.</p>
@@ -430,7 +445,7 @@ export const LiveTripMap: React.FC<LiveTripMapProps> = ({ tripId }) => {
                     <div className="flex items-start gap-1.5 pt-1 text-xs">
                       <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold-600" />
                       <div>
-                        <div className="font-semibold text-cardinal-900">
+                        <div className="font-semibold text-accent">
                           {b.pickup_sequence ? `Stop ${b.pickup_sequence} at ` : ''}
                           {b.pickup_label}
                         </div>

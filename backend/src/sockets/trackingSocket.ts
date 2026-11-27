@@ -19,9 +19,15 @@ interface LocationPayload {
   speedKmh?: number;
 }
 
+let ioInstance: Server | null = null;
+
+export function getIo(): Server | null {
+  return ioInstance;
+}
+
 /**
- * Sets up real-time Socket.IO rooms per trip for live driver & rider GPS markers
- * and dynamically recalculated ETAs to each rider's pick-up stop and Mapúa Intramuros.
+ * Sets up real-time Socket.IO rooms per trip for live driver & rider GPS markers,
+ * dynamically recalculated ETAs, and real-time driver <-> rider trip chat.
  */
 export function initTrackingSocket(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
@@ -31,8 +37,8 @@ export function initTrackingSocket(httpServer: HttpServer): Server {
       credentials: true,
     },
   });
+  ioInstance = io;
 
-  // Authenticate every Socket.IO connection with the user's JWT
   io.use(async (socket: AuthedSocket, next) => {
     try {
       const token =
@@ -65,7 +71,6 @@ export function initTrackingSocket(httpServer: HttpServer): Server {
       if (!tripId) return;
       socket.join(`trip:${tripId}`);
 
-      // Send current persisted live locations immediately upon joining
       const locRes = await query(
         `SELECT l.trip_id, l.user_id, l.role, l.lat, l.lng, l.heading, l.speed_kmh, l.updated_at, u.full_name
          FROM live_locations l
@@ -85,7 +90,6 @@ export function initTrackingSocket(httpServer: HttpServer): Server {
         if (!socket.userId || !payload?.tripId) return;
         if (typeof payload.lat !== 'number' || typeof payload.lng !== 'number') return;
 
-        // Upsert latest live GPS position in PostgreSQL
         await query(
           `INSERT INTO live_locations (trip_id, user_id, role, lat, lng, heading, speed_kmh, updated_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
@@ -108,7 +112,6 @@ export function initTrackingSocket(httpServer: HttpServer): Server {
           ]
         );
 
-        // Broadcast updated position to everyone tracking this trip
         io.to(`trip:${payload.tripId}`).emit('location:broadcast', {
           trip_id: payload.tripId,
           user_id: socket.userId,
@@ -121,7 +124,6 @@ export function initTrackingSocket(httpServer: HttpServer): Server {
           updated_at: new Date().toISOString(),
         });
 
-        // If the driver moved, dynamically recalculate ETAs for every pick-up point & Mapúa Intramuros
         if (payload.role === 'DRIVER') {
           const pickupsRes = await query(
             'SELECT id, label, lat, lng FROM pickup_points WHERE trip_id = $1 ORDER BY sequence_order ASC',

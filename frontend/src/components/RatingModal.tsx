@@ -71,7 +71,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
   const activeStars = hoverStars || stars;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-md animate-overlay-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/60 p-4 backdrop-blur-md animate-overlay-in">
       <div className={`${cardCls} w-full max-w-md overflow-hidden shadow-lift animate-sheet-in`}>
         <div className="flex items-center justify-between bg-cardinal-800 px-5 py-4 text-white">
           <div>
@@ -99,7 +99,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
 
           <div className="text-center">
             <p className="text-sm font-semibold text-slate-900">
-              How was your ride with <span className="text-cardinal-700">{targetName}</span>?
+              How was your ride with <span className="text-accent">{targetName}</span>?
             </p>
             <div className="mt-3 flex items-center justify-center gap-2">
               {[1, 2, 3, 4, 5].map((value) => (
@@ -147,7 +147,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                     onClick={() => toggleTag(tag)}
                     className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                       selected
-                        ? 'border-cardinal-700 bg-cardinal-50 text-cardinal-800'
+                        ? 'border-cardinal-700 bg-cardinal-50 text-accent'
                         : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                     }`}
                   >

@@ -175,7 +175,7 @@ export const AuthView: React.FC = () => {
           <img
             src="/cardiride-icon.png"
             alt=""
-            className="h-12 w-12 rounded-2xl bg-white p-1 object-contain shadow-lift"
+            className="h-12 w-12 rounded-2xl bg-surface p-1 object-contain shadow-lift"
           />
           <div className="leading-none">
             <div className="font-display text-xl font-semibold tracking-tight">CardiRide</div>
@@ -211,7 +211,7 @@ export const AuthView: React.FC = () => {
           <img
             src="/cardiride-icon.png"
             alt=""
-            className="h-10 w-10 rounded-xl bg-white p-1 object-contain"
+            className="h-10 w-10 rounded-xl bg-surface p-1 object-contain"
           />
           <div className="leading-none">
             <div className="font-display text-lg font-semibold tracking-tight">CardiRide</div>
@@ -227,7 +227,7 @@ export const AuthView: React.FC = () => {
           >
             <span
               aria-hidden
-              className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.3,0.9,0.3,1)] ${
+              className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-lg bg-thumb shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.3,0.9,0.3,1)] ${
                 isRegister ? 'translate-x-full' : 'translate-x-0'
               }`}
             />
@@ -242,7 +242,7 @@ export const AuthView: React.FC = () => {
                   setError(null);
                 }}
                 className={`relative z-10 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600 ${
-                  mode === m ? 'text-cardinal-800' : 'text-slate-500 hover:text-slate-800'
+                  mode === m ? 'text-accent' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 {m === 'login' ? 'Sign in' : 'Register'}
@@ -406,11 +406,11 @@ export const AuthView: React.FC = () => {
                       className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal-600 ${
                         initialMode === value
                           ? 'border-cardinal-600 bg-cardinal-50 ring-1 ring-cardinal-600'
-                          : 'border-slate-300 bg-white hover:border-slate-400'
+                          : 'border-slate-300 bg-surface hover:border-slate-400'
                       }`}
                     >
                       <Icon
-                        className={`h-5 w-5 ${initialMode === value ? 'text-cardinal-700' : 'text-slate-400'}`}
+                        className={`h-5 w-5 ${initialMode === value ? 'text-accent' : 'text-slate-400'}`}
                       />
                       <span>
                         <span className="block text-sm font-semibold text-slate-900">{label}</span>
@@ -424,7 +424,7 @@ export const AuthView: React.FC = () => {
               <Collapse open={isRegister && initialMode === 'DRIVER'}>
                 <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-                    <Car className="h-4 w-4 text-cardinal-700" />
+                    <Car className="h-4 w-4 text-accent" />
                     Your vehicle
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -493,7 +493,7 @@ export const AuthView: React.FC = () => {
             </button>
 
             <p className="flex items-center justify-center gap-1.5 pt-1 text-xs text-slate-500 lg:hidden">
-              <ShieldCheck className="h-3.5 w-3.5 text-cardinal-700" />
+              <ShieldCheck className="h-3.5 w-3.5 text-accent" />
               Only @mymail.mapua.edu.ph and @mapua.edu.ph emails work.
             </p>
           </form>

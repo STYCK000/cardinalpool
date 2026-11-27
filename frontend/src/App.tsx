@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ChevronDown, Compass, MapPin, Plus, Ticket } from 'lucide-react';
+import { ChevronDown, Compass, History, MapPin, Plus, Ticket } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import { Navbar, ActiveTab } from './components/Navbar';
 import { AuthView } from './components/AuthView';
@@ -52,6 +52,7 @@ const PageHeading: React.FC<{
 export default function App() {
   const { user, loading, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('browse');
+  const [ridesView, setRidesView] = useState<'upcoming' | 'past'>('upcoming');
   const [trips, setTrips] = useState<Trip[]>([]);
   const [myDrivenTripsList, setMyDrivenTripsList] = useState<Trip[]>([]);
   const [tripsLoading, setTripsLoading] = useState(true);
@@ -77,8 +78,11 @@ export default function App() {
       setTrips(tripsRes.trips);
       setMyDrivenTripsList(myTripsRes.trips);
       setMyBookings(bookingsRes.bookings);
-      // Pick a default map trip once, without re-fetching every time the selection changes
-      setSelectedMapTripId((current) => current ?? tripsRes.trips[0]?.id ?? null);
+      // Keep selected map trip pointing only to an active (non-completed) trip
+      const activeOnly = tripsRes.trips.filter((t) => t.status === 'SCHEDULED' || t.status === 'IN_PROGRESS');
+      setSelectedMapTripId((current) =>
+        current && activeOnly.some((t) => t.id === current) ? current : activeOnly[0]?.id ?? null
+      );
     } catch (err) {
       setBanner({ type: 'error', text: (err as Error).message });
     } finally {
@@ -181,7 +185,28 @@ export default function App() {
     setActiveTab('map');
   };
 
-  const myDrivenTrips = myDrivenTripsList;
+  const activeTrips = trips.filter((t) => t.status === 'SCHEDULED' || t.status === 'IN_PROGRESS');
+  const activeDrivenTrips = myDrivenTripsList.filter(
+    (t) => t.status === 'SCHEDULED' || t.status === 'IN_PROGRESS'
+  );
+  const pastDrivenTrips = myDrivenTripsList
+    .filter((t) => t.status === 'COMPLETED' || t.status === 'CANCELLED')
+    .sort((a, b) => new Date(b.departure_time).getTime() - new Date(a.departure_time).getTime());
+
+  const activeBookings = myBookings.filter(
+    (b) =>
+      (b.status === 'CONFIRMED' || b.status === 'BOARDED') &&
+      b.trip_status !== 'COMPLETED' &&
+      b.trip_status !== 'CANCELLED'
+  );
+  const pastBookings = myBookings.filter(
+    (b) =>
+      b.status === 'COMPLETED' ||
+      b.status === 'CANCELLED' ||
+      b.status === 'REFUNDED' ||
+      b.trip_status === 'COMPLETED' ||
+      b.trip_status === 'CANCELLED'
+  );
   const isDriverMode = user.active_mode === 'DRIVER';
   const seatsOpen = trips.reduce((sum, t) => sum + t.available_seats, 0);
 
@@ -299,7 +324,7 @@ export default function App() {
                   <TripCardSkeleton />
                   <TripCardSkeleton />
                 </div>
-              ) : trips.length === 0 ? (
+              ) : activeTrips.length === 0 ? (
                 <EmptyState
                   icon={<Compass className="h-6 w-6" />}
                   title="No rides scheduled yet"
@@ -310,63 +335,147 @@ export default function App() {
                     : 'Switch to Driver mode to post the first ride to Intramuros.'}
                 </EmptyState>
               ) : (
-                tripGrid(trips, false)
+                tripGrid(activeTrips, false)
               )}
             </>
           )}
 
-          {/* MY TRIPS OR MY BOOKINGS */}
+          {/* MY TRIPS OR MY BOOKINGS (WITH UPCOMING / PAST RIDES) */}
           {activeTab === 'my-trips' && (
             <>
               {isDriverMode ? (
                 <>
-                  <PageHeading
-                    title="My trips"
-                    action={postTripButton}
-                  >
-                    See who is riding with you, where they get picked up, and mark them as picked up.
+                  <PageHeading title="My trips" action={postTripButton}>
+                    Manage your upcoming carpools or review completed rides and rate passengers.
                   </PageHeading>
+
+                  <div className="inline-flex rounded-full bg-slate-200/75 p-1 text-sm font-medium">
+                    <button
+                      type="button"
+                      onClick={() => setRidesView('upcoming')}
+                      className={`rounded-full px-4 py-1.5 transition ${
+                        ridesView === 'upcoming'
+                          ? 'bg-thumb text-slate-900 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Upcoming ({activeDrivenTrips.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRidesView('past')}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 transition ${
+                        ridesView === 'past'
+                          ? 'bg-thumb text-slate-900 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <History className="h-3.5 w-3.5" />
+                      Past rides ({pastDrivenTrips.length})
+                    </button>
+                  </div>
+
                   {tripsLoading ? (
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                       <TripCardSkeleton />
                     </div>
-                  ) : myDrivenTrips.length === 0 ? (
-                    <EmptyState
-                      icon={<Compass className="h-6 w-6" />}
-                      title="You have not posted any trips"
-                      action={postTripButton}
-                    >
-                      Schedule a carpool to Mapúa Intramuros and riders can start booking seats.
+                  ) : ridesView === 'upcoming' ? (
+                    activeDrivenTrips.length === 0 ? (
+                      <EmptyState
+                        icon={<Compass className="h-6 w-6" />}
+                        title="No active or upcoming trips"
+                        action={postTripButton}
+                      >
+                        Completed trips automatically move to Past rides. Post a new trip to Intramuros anytime.
+                      </EmptyState>
+                    ) : (
+                      tripGrid(activeDrivenTrips, true)
+                    )
+                  ) : pastDrivenTrips.length === 0 ? (
+                    <EmptyState icon={<History className="h-6 w-6" />} title="No past trips yet">
+                      Once you complete a trip at Mapúa Intramuros, it will appear here so you can review payouts and rate riders.
                     </EmptyState>
                   ) : (
-                    tripGrid(myDrivenTrips, true)
+                    tripGrid(pastDrivenTrips, true)
                   )}
                 </>
               ) : (
                 <>
                   <PageHeading title="My bookings">
-                    Seats you have reserved. Cancel before the trip starts to get your tokens back.
+                    Track your upcoming reserved seats or view past rides and rate your drivers.
                   </PageHeading>
+
+                  <div className="inline-flex rounded-full bg-slate-200/75 p-1 text-sm font-medium">
+                    <button
+                      type="button"
+                      onClick={() => setRidesView('upcoming')}
+                      className={`rounded-full px-4 py-1.5 transition ${
+                        ridesView === 'upcoming'
+                          ? 'bg-thumb text-slate-900 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Upcoming ({activeBookings.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRidesView('past')}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 transition ${
+                        ridesView === 'past'
+                          ? 'bg-thumb text-slate-900 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <History className="h-3.5 w-3.5" />
+                      Past rides ({pastBookings.length})
+                    </button>
+                  </div>
+
                   {tripsLoading ? (
                     <div className="space-y-3">
                       <Skeleton className="h-28 w-full rounded-2xl" />
                       <Skeleton className="h-28 w-full rounded-2xl" />
                     </div>
-                  ) : myBookings.length === 0 ? (
-                    <EmptyState
-                      icon={<Ticket className="h-6 w-6" />}
-                      title="No bookings yet"
-                      action={
-                        <button type="button" onClick={() => setActiveTab('browse')} className={btn('primary')}>
-                          Find a ride
-                        </button>
-                      }
-                    >
-                      Browse upcoming rides and reserve a seat at least 24 hours ahead.
+                  ) : ridesView === 'upcoming' ? (
+                    activeBookings.length === 0 ? (
+                      <EmptyState
+                        icon={<Ticket className="h-6 w-6" />}
+                        title="No upcoming bookings"
+                        action={
+                          <button type="button" onClick={() => setActiveTab('browse')} className={btn('primary')}>
+                            Find a ride
+                          </button>
+                        }
+                      >
+                        Completed rides automatically move to Past rides. Browse upcoming trips to reserve a seat.
+                      </EmptyState>
+                    ) : (
+                      <div className="space-y-3">
+                        {activeBookings.map((b) => (
+                          <BookingCard
+                            key={b.id}
+                            booking={b}
+                            onTrack={openMapFor}
+                            onCancel={handleCancelBooking}
+                            onRateDriver={(booking) =>
+                              setRatingTarget({
+                                bookingId: booking.id,
+                                targetName: booking.driver_name || 'Driver',
+                                targetRole: 'DRIVER',
+                                tripSummary: `${booking.pickup_label} → Mapúa Intramuros`,
+                              })
+                            }
+                          />
+                        ))}
+                      </div>
+                    )
+                  ) : pastBookings.length === 0 ? (
+                    <EmptyState icon={<History className="h-6 w-6" />} title="No past rides yet">
+                      Completed or cancelled rides will appear here so you can review your history and rate drivers.
                     </EmptyState>
                   ) : (
                     <div className="space-y-3">
-                      {myBookings.map((b) => (
+                      {pastBookings.map((b) => (
                         <BookingCard
                           key={b.id}
                           booking={b}
@@ -395,7 +504,7 @@ export default function App() {
               <PageHeading
                 title="Live map"
                 action={
-                  trips.length > 0 ? (
+                  activeTrips.length > 0 ? (
                     <div className="relative">
                       <label htmlFor="map-trip" className="sr-only">
                         Choose a trip to follow
@@ -404,9 +513,9 @@ export default function App() {
                         id="map-trip"
                         value={selectedMapTripId || ''}
                         onChange={(e) => setSelectedMapTripId(e.target.value)}
-                        className="max-w-[18rem] appearance-none truncate rounded-xl border border-slate-300 bg-white py-2.5 pl-4 pr-9 text-[15px] font-medium text-slate-900 transition hover:border-slate-400 focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/15"
+                        className="max-w-[18rem] appearance-none truncate rounded-xl border border-slate-300 bg-surface dark:bg-slate-100 py-2.5 pl-4 pr-9 text-[15px] font-medium text-slate-900 transition hover:border-slate-400 focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/15"
                       >
-                        {trips.map((t) => (
+                        {activeTrips.map((t) => (
                           <option key={t.id} value={t.id}>
                             {t.origin_name} with {t.driver_name}
                           </option>

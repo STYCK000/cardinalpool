@@ -261,11 +261,11 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
   }, []);
 
   const dropdownCls =
-    'absolute z-20 left-0 right-0 mt-1.5 max-h-52 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lift animate-fade-in divide-y divide-slate-100';
+    'absolute z-20 left-0 right-0 mt-1.5 max-h-52 overflow-y-auto rounded-xl border border-slate-200 bg-surface shadow-lift animate-fade-in divide-y divide-slate-100';
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/30 backdrop-blur-md animate-overlay-in"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/30 dark:bg-black/60 backdrop-blur-md animate-overlay-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="create-trip-title"
@@ -276,7 +276,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
           if (e.target === e.currentTarget) onClose();
         }}
       >
-        <div className="w-full max-w-6xl overflow-hidden rounded-t-[28px] bg-white shadow-lift animate-sheet-in sm:rounded-[28px]">
+        <div className="w-full max-w-6xl overflow-hidden rounded-t-[28px] bg-surface shadow-lift animate-sheet-in sm:rounded-[28px]">
           <div className="flex items-start justify-between gap-4 bg-cardinal-800 px-5 py-4 text-white sm:px-6">
             <div>
               <h2 id="create-trip-title" className="text-lg font-semibold tracking-tight">
@@ -408,7 +408,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
                       className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-2.5 animate-fade-in"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold-400 text-[11px] font-semibold text-slate-900">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold-400 text-[11px] font-semibold text-[#1d1d1f]">
                           {idx + 1}
                         </span>
                         <input
@@ -417,7 +417,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
                           aria-label={`Name of stop ${idx + 1}`}
                           value={stop.label}
                           onChange={(e) => updatePickup(idx, 'label', e.target.value)}
-                          className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm font-semibold focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/10"
+                          className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-surface px-2.5 py-1.5 text-sm font-semibold focus:border-cardinal-600 focus:outline-none focus:ring-4 focus:ring-cardinal-600/10"
                         />
                         <span className="whitespace-nowrap text-xs font-medium tabular-nums text-slate-500">
                           +{stop.estimatedOffsetMinutes} min
@@ -440,10 +440,10 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
 
               {/* Fixed destination */}
               <div className="flex items-center gap-3 rounded-xl border border-cardinal-100 bg-cardinal-50 px-3.5 py-3">
-                <Navigation className="h-4 w-4 shrink-0 text-cardinal-700" />
+                <Navigation className="h-4 w-4 shrink-0 text-accent" />
                 <div>
-                  <div className="text-sm font-semibold text-cardinal-900">Mapúa University Intramuros</div>
-                  <div className="text-xs text-cardinal-700">658 Muralla St, Intramuros, Manila. Fixed destination.</div>
+                  <div className="text-sm font-semibold text-accent">Mapúa University Intramuros</div>
+                  <div className="text-xs text-accent">658 Muralla St, Intramuros, Manila. Fixed destination.</div>
                 </div>
               </div>
 
@@ -509,7 +509,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
                 />
               </div>
 
-              <div className="sticky bottom-0 -mx-1 flex justify-end gap-2 border-t border-slate-100 bg-white/95 px-1 pb-1 pt-4 backdrop-blur">
+              <div className="sticky bottom-0 -mx-1 flex justify-end gap-2 border-t border-slate-100 bg-surface/95 px-1 pb-1 pt-4 backdrop-blur">
                 <button type="button" onClick={onClose} className={btn('secondary')}>
                   Cancel
                 </button>
@@ -524,7 +524,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
             <div className="flex flex-col gap-3 lg:col-span-7">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-1.5 font-medium text-slate-700">
-                  <MapPin className="h-4 w-4 text-cardinal-700" />
+                  <MapPin className="h-4 w-4 text-accent" />
                   {mapPinMode === 'START'
                     ? 'Tap the map to set your starting point'
                     : 'Tap the map to add a pick-up stop'}
@@ -536,7 +536,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
                   </span>
                 ) : (
                   routeDistanceKm > 0 && (
-                    <div className="inline-flex items-center gap-3 rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold text-white">
+                    <div className="inline-flex items-center gap-3 rounded-full bg-[#1d1d1f] dark:bg-slate-200 px-3 py-1 text-[11px] font-semibold text-white">
                       <span className="inline-flex items-center gap-1 tabular-nums">
                         <Route className="h-3.5 w-3.5 text-gold-400" />
                         {routeDistanceKm} km
@@ -553,8 +553,8 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({ onClose, onCre
               <div className="relative h-[360px] overflow-hidden rounded-2xl border border-slate-200 sm:h-[460px] lg:h-[600px] [&_.leaflet-container]:cursor-crosshair">
                 {resolvingPin && (
                   <div className="pointer-events-none absolute left-1/2 top-3 z-[500] -translate-x-1/2 animate-fade-in">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-lift">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-cardinal-700" />
+                    <span className="inline-flex items-center gap-2 rounded-full bg-surface px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-lift">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
                       Finding that address
                     </span>
                   </div>
