@@ -62,6 +62,14 @@ export interface TripBookingItem {
   rider_role?: UniversityRole;
   rider_department?: string;
   rider_university_id?: string;
+  rider_avg_rating?: number | null;
+  rider_rating_count?: number;
+  driver_avg_rating?: number | null;
+  driver_rating_count?: number;
+  rider_has_rated?: boolean;
+  rider_rating_stars?: number | null;
+  driver_has_rated?: boolean;
+  driver_rating_stars?: number | null;
   pickup_point_id: string;
   pickup_label: string;
   pickup_address?: string;
@@ -88,6 +96,8 @@ export interface Trip {
   driver_name: string;
   driver_role: UniversityRole;
   driver_department: string;
+  driver_avg_rating?: number | null;
+  driver_rating_count?: number;
   vehicle_make?: string;
   vehicle_model?: string;
   vehicle_color?: string;
@@ -138,3 +148,23 @@ export interface WalletData {
 }
 
 export const MAPUA_INTRAMUROS_COORDS: [number, number] = [14.5902, 120.9787];
+
+export interface RatingSummary {
+  avg_rating: number | null;
+  rating_count: number;
+  as_driver_avg: number | null;
+  as_driver_count: number;
+  as_rider_avg: number | null;
+  as_rider_count: number;
+}
+
+export interface RatingReview {
+  id: string;
+  stars: number;
+  comment: string | null;
+  rater_role: UserMode;
+  rater_name: string;
+  rater_university_role: UniversityRole;
+  origin_name: string;
+  created_at: string;
+}

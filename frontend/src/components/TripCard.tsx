@@ -6,9 +6,10 @@ import {
   CheckCircle2,
   Coins,
   MapPin,
+  Star,
   UserCheck,
 } from 'lucide-react';
-import { Trip } from '../types';
+import { Trip, TripBookingItem } from '../types';
 import { Pill, Spinner, StatusPill, btn, cardCls } from './ui';
 
 interface TripCardProps {
@@ -19,6 +20,7 @@ interface TripCardProps {
   onStartTrip?: (tripId: string) => Promise<void>;
   onCompleteTrip?: (tripId: string) => Promise<void>;
   onMarkBoarded?: (bookingId: string) => Promise<void>;
+  onRateRider?: (booking: TripBookingItem, tripOrigin: string) => void;
 }
 
 export const TripCard: React.FC<TripCardProps> = ({
@@ -29,6 +31,7 @@ export const TripCard: React.FC<TripCardProps> = ({
   onStartTrip,
   onCompleteTrip,
   onMarkBoarded,
+  onRateRider,
 }) => {
   const [selectedPickupId, setSelectedPickupId] = useState<string>(
     trip.pickup_points[0]?.id || ''
@@ -129,6 +132,13 @@ export const TripCard: React.FC<TripCardProps> = ({
             <Car className="h-4 w-4 shrink-0 text-slate-400" />
             <div className="min-w-0 text-xs text-slate-600">
               <span className="font-semibold text-slate-900">{trip.driver_name}</span>
+              {trip.driver_avg_rating != null && (
+                <span className="ml-1.5 inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                  {trip.driver_avg_rating.toFixed(1)}
+                  {trip.driver_rating_count ? ` (${trip.driver_rating_count})` : ''}
+                </span>
+              )}
               <span className="mx-1.5 text-slate-300">|</span>
               {trip.vehicle_color} {trip.vehicle_make} {trip.vehicle_model}
               <span className="ml-1.5 rounded bg-white px-1.5 py-0.5 font-mono text-[11px] text-slate-700 ring-1 ring-slate-200">
@@ -166,6 +176,12 @@ export const TripCard: React.FC<TripCardProps> = ({
                       <div className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-slate-900">
                         {b.rider_name}
                         <Pill>{b.rider_role === 'FACULTY' ? 'Faculty' : 'Student'}</Pill>
+                        {b.rider_avg_rating != null && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">
+                            <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                            {b.rider_avg_rating.toFixed(1)}
+                          </span>
+                        )}
                         <Pill tone={b.status === 'BOARDED' ? 'green' : 'amber'}>
                           {b.status === 'BOARDED' ? 'Picked up' : 'Waiting'}
                         </Pill>
@@ -188,6 +204,22 @@ export const TripCard: React.FC<TripCardProps> = ({
                       </div>
                     </div>
 
+                    {trip.status === 'COMPLETED' && !b.driver_has_rated && onRateRider && (
+                      <button
+                        type="button"
+                        onClick={() => onRateRider(b, trip.origin_name)}
+                        className={btn('primary', 'sm')}
+                      >
+                        <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />
+                        Rate rider
+                      </button>
+                    )}
+                    {trip.status === 'COMPLETED' && b.driver_has_rated && (
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
+                        Rated {b.driver_rating_stars}/5
+                      </span>
+                    )}
                     {b.status === 'CONFIRMED' && onMarkBoarded && (
                       <button
                         type="button"

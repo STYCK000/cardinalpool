@@ -9,6 +9,7 @@ import userRoutes from './routes/userRoutes';
 import tripRoutes from './routes/tripRoutes';
 import bookingRoutes from './routes/bookingRoutes';
 import walletRoutes from './routes/walletRoutes';
+import ratingRoutes from './routes/ratingRoutes';
 
 export function createApp() {
   const app = express();
@@ -45,6 +46,7 @@ export function createApp() {
   app.use('/api/trips', tripRoutes);
   app.use('/api/bookings', bookingRoutes);
   app.use('/api/wallet', walletRoutes);
+  app.use('/api/ratings', ratingRoutes);
 
   app.use(errorHandler);
   return app;

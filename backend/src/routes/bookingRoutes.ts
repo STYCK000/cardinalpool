@@ -125,6 +125,10 @@ router.get('/me', requireAuth, async (req, res, next) => {
               t.origin_name, t.destination_name, t.departure_time, t.status AS trip_status,
               t.token_cost,
               u.full_name AS driver_name, u.vehicle_make, u.vehicle_model, u.vehicle_color, u.vehicle_plate_number,
+              (SELECT ROUND(AVG(r.stars)::numeric, 1)::float FROM trip_ratings r WHERE r.ratee_id = t.driver_id) AS driver_avg_rating,
+              (SELECT COUNT(*)::int FROM trip_ratings r WHERE r.ratee_id = t.driver_id) AS driver_rating_count,
+              EXISTS(SELECT 1 FROM trip_ratings r WHERE r.booking_id = b.id AND r.rater_id = b.rider_id) AS rider_has_rated,
+              (SELECT r.stars FROM trip_ratings r WHERE r.booking_id = b.id AND r.rater_id = b.rider_id LIMIT 1) AS rider_rating_stars,
               p.label AS pickup_label, p.address AS pickup_address, p.lat AS pickup_lat, p.lng AS pickup_lng
        FROM bookings b
        JOIN trips t ON t.id = b.trip_id

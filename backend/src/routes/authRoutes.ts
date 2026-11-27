@@ -62,6 +62,7 @@ router.post('/register', async (req, res, next) => {
     const passwordHash = await bcrypt.hash(body.password, 10);
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const requireVerify = process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
 
     const createdUser = await withTransaction(async (client) => {
       const existing = await client.query(
@@ -84,7 +85,7 @@ router.post('/register', async (req, res, next) => {
            vehicle_make, vehicle_model, vehicle_color, vehicle_plate_number, vehicle_seat_capacity
          ) VALUES (
            $1, $2, $3, $4, $5,
-           $6, $7, $8, FALSE,
+           $6, $7, $8, ${requireVerify ? 'FALSE' : 'TRUE'},
            $9, $10, $11,
            $12, $13, $14, $15, $16
          )
@@ -125,18 +126,18 @@ router.post('/register', async (req, res, next) => {
       return user;
     });
 
-    const mailResult = await sendVerificationEmail({
+    const mailResult = requireVerify ? await sendVerificationEmail({
       to: createdUser.email,
       fullName: createdUser.full_name,
       token: verificationToken,
-    });
+    }) : { verificationUrl: '', delivered: false };
 
     res.status(201).json({
       message:
-        'Registration successful! Please verify your Mapúa University email before signing in.',
+        requireVerify ? 'Registration successful! Please verify your Mapúa University email before signing in.' : 'Registration successful! You can now sign in to CardiRide.',
       user: createdUser,
       // Exposed only in development so local testers can verify without external SMTP
-      ...(env.nodeEnv !== 'production' ? { devVerificationUrl: mailResult.verificationUrl } : {}),
+      ...(requireVerify && env.nodeEnv !== 'production' ? { devVerificationUrl: mailResult.verificationUrl } : {}),
     });
   } catch (err) {
     next(err);

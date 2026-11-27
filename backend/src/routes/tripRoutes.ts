@@ -135,6 +135,8 @@ router.get('/', requireAuth, async (req, res, next) => {
     if (statusFilter) {
       params.push(statusFilter);
       conditions.push(`t.status = $${params.length}`);
+    } else if (mineOnly) {
+      conditions.push(`t.status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED')`);
     } else {
       conditions.push(`t.status IN ('SCHEDULED', 'IN_PROGRESS')`);
     }
@@ -151,6 +153,8 @@ router.get('/', requireAuth, async (req, res, next) => {
               u.university_role AS driver_role,
               u.department AS driver_department,
               u.vehicle_make, u.vehicle_model, u.vehicle_color, u.vehicle_plate_number,
+              (SELECT ROUND(AVG(r.stars)::numeric, 1)::float FROM trip_ratings r WHERE r.ratee_id = t.driver_id) AS driver_avg_rating,
+              (SELECT COUNT(*)::int FROM trip_ratings r WHERE r.ratee_id = t.driver_id) AS driver_rating_count,
               COALESCE(
                 (SELECT json_agg(p ORDER BY p.sequence_order ASC)
                  FROM pickup_points p WHERE p.trip_id = t.id),
@@ -176,7 +180,11 @@ router.get('/', requireAuth, async (req, res, next) => {
                        'seats_booked', b.seats_booked,
                        'tokens_escrowed', b.tokens_escrowed,
                        'status', b.status,
-                       'booked_at', b.booked_at
+                       'booked_at', b.booked_at,
+                       'rider_avg_rating', (SELECT ROUND(AVG(rr.stars)::numeric, 1)::float FROM trip_ratings rr WHERE rr.ratee_id = b.rider_id),
+                       'rider_rating_count', (SELECT COUNT(*)::int FROM trip_ratings rr WHERE rr.ratee_id = b.rider_id),
+                       'driver_has_rated', EXISTS(SELECT 1 FROM trip_ratings dr WHERE dr.booking_id = b.id AND dr.rater_id = t.driver_id),
+                       'driver_rating_stars', (SELECT dr.stars FROM trip_ratings dr WHERE dr.booking_id = b.id AND dr.rater_id = t.driver_id LIMIT 1)
                      ) ORDER BY pp.sequence_order ASC, b.booked_at ASC
                    )
                    FROM bookings b

@@ -6,6 +6,7 @@ import { AuthView } from './components/AuthView';
 import { TripCard } from './components/TripCard';
 import { BookingCard } from './components/BookingCard';
 import { CreateTripModal } from './components/CreateTripModal';
+import { RatingModal } from './components/RatingModal';
 import { LiveTripMap } from './components/LiveTripMap';
 import { WalletDashboard } from './components/WalletDashboard';
 import { ProfileSettings } from './components/ProfileSettings';
@@ -52,8 +53,15 @@ export default function App() {
   const { user, loading, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('browse');
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [myDrivenTripsList, setMyDrivenTripsList] = useState<Trip[]>([]);
   const [tripsLoading, setTripsLoading] = useState(true);
   const [myBookings, setMyBookings] = useState<TripBookingItem[]>([]);
+  const [ratingTarget, setRatingTarget] = useState<{
+    bookingId: string;
+    targetName: string;
+    targetRole: 'DRIVER' | 'RIDER';
+    tripSummary: string;
+  } | null>(null);
   const [selectedMapTripId, setSelectedMapTripId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [banner, setBanner] = useState<Banner>(null);
@@ -61,11 +69,13 @@ export default function App() {
   const loadTripsAndBookings = useCallback(async () => {
     if (!user) return;
     try {
-      const [tripsRes, bookingsRes] = await Promise.all([
+      const [tripsRes, myTripsRes, bookingsRes] = await Promise.all([
         apiRequest<{ trips: Trip[] }>('/trips'),
+        apiRequest<{ trips: Trip[] }>('/trips?mine=true'),
         apiRequest<{ bookings: TripBookingItem[] }>('/bookings/me'),
       ]);
       setTrips(tripsRes.trips);
+      setMyDrivenTripsList(myTripsRes.trips);
       setMyBookings(bookingsRes.bookings);
       // Pick a default map trip once, without re-fetching every time the selection changes
       setSelectedMapTripId((current) => current ?? tripsRes.trips[0]?.id ?? null);
@@ -171,7 +181,7 @@ export default function App() {
     setActiveTab('map');
   };
 
-  const myDrivenTrips = trips.filter((t) => t.driver_id === user.id);
+  const myDrivenTrips = myDrivenTripsList;
   const isDriverMode = user.active_mode === 'DRIVER';
   const seatsOpen = trips.reduce((sum, t) => sum + t.available_seats, 0);
 
@@ -194,6 +204,14 @@ export default function App() {
           onStartTrip={handleStartTrip}
           onCompleteTrip={handleCompleteTrip}
           onMarkBoarded={handleMarkBoarded}
+          onRateRider={(b, originName) =>
+            setRatingTarget({
+              bookingId: b.id,
+              targetName: b.rider_name || 'Rider',
+              targetRole: 'RIDER',
+              tripSummary: `${originName} → Mapúa Intramuros`,
+            })
+          }
         />
       ))}
     </div>
@@ -354,6 +372,14 @@ export default function App() {
                           booking={b}
                           onTrack={openMapFor}
                           onCancel={handleCancelBooking}
+                          onRateDriver={(booking) =>
+                            setRatingTarget({
+                              bookingId: booking.id,
+                              targetName: booking.driver_name || 'Driver',
+                              targetRole: 'DRIVER',
+                              tripSummary: `${booking.pickup_label} → Mapúa Intramuros`,
+                            })
+                          }
                         />
                       ))}
                     </div>
@@ -408,6 +434,20 @@ export default function App() {
           {activeTab === 'profile' && <ProfileSettings />}
         </div>
       </main>
+
+      {ratingTarget && (
+        <RatingModal
+          bookingId={ratingTarget.bookingId}
+          targetName={ratingTarget.targetName}
+          targetRole={ratingTarget.targetRole}
+          tripSummary={ratingTarget.tripSummary}
+          onClose={() => setRatingTarget(null)}
+          onSubmitted={async (msg) => {
+            setBanner({ type: 'success', text: msg });
+            await loadTripsAndBookings();
+          }}
+        />
+      )}
 
       {showCreateModal && (
         <CreateTripModal
